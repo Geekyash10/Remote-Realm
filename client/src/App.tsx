@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Client, Room } from "colyseus.js";
+import { PrivateRoomDialog } from "./components/PrivateRoomDialog";
+import { PrivateRoomsList } from "./components/PrivateRoomsList";
 import {
 	Building2,
 	Users,
@@ -45,6 +47,14 @@ function App() {
 
 	// Private rooms list state
 	const [privateRooms, setPrivateRooms] = useState<RoomInfo[]>([]);
+
+	const [showJoinDialog, setShowJoinDialog] = useState(false);
+	const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
+
+	const handleJoinPrivateRoom = (room: RoomInfo) => {
+		setSelectedRoom(room);
+		setShowJoinDialog(true);
+	};
 
 	useEffect(() => {
 		if (currentRoom) {
@@ -127,33 +137,24 @@ function App() {
 		}
 	};
 
-	const joinPrivateRoom = async (roomId: string) => {
-		// Use roomId instead of roomName
-		console.log(`Attempting to join room: ${roomId}`);
-
-		const name = prompt("Enter your name");
-		if (!name) return console.log("No name entered");
-
-		const password = prompt("Enter room password");
-		if (!password) return console.log("No password entered");
-
+	const joinPrivateRoom = async (username: string, password: string) => {
 		try {
-			console.log("Joining with:", { roomId, name, password });
-
-			const room = await client.joinById(roomId, {
-				playerName: name,
-				roomId: roomId,
+			if (!selectedRoom) {
+				setError("No room selected.");
+				return;
+			}
+			const room = await client.joinById(selectedRoom.roomId, {
+				playerName: username,
+				roomId: selectedRoom.roomId,
 				roomPassword: password,
 			});
 
-			console.log("Room joined successfully:", room);
-
-			setUsername(name);
+			setUsername(username);
 			setCurrentRoom(room);
 			setJoinState("joined");
+			setShowJoinDialog(false);
 			setError("");
 		} catch (error) {
-			console.error("Error joining room:", error);
 			setError("Failed to join private room. Check your credentials.");
 		}
 	};
@@ -349,38 +350,27 @@ function App() {
 				)}
 
 				{joinState === "list-private" && (
-					<div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+					<div className="max-w-full mx-auto bg-white rounded-xl shadow-lg p-8">
 						<h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
 							Private Rooms
 						</h2>
-						{privateRooms.length === 0 ? (
-							<p className="text-center text-gray-600">
-								No private rooms available
-							</p>
-						) : (
-							<div className="space-y-4">
-								{privateRooms.map((room, index) => (
-									<div
-										key={index}
-										className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-										onClick={() =>
-											joinPrivateRoom(room.roomId)
-										} // Use roomId instead of roomName
-									>
-										<div className="flex justify-between items-center">
-											<div>
-												<h3 className="font-semibold text-gray-900">
-													{room.roomName}
-												</h3>
-												<p className="text-sm text-gray-600">
-													{room.description}
-												</p>
-											</div>
-											<Lock className="w-5 h-5 text-purple-600" />
-										</div>
-									</div>
-								))}
-							</div>
+						{joinState === "list-private" && (
+							<>
+								<PrivateRoomsList
+									rooms={privateRooms}
+									onJoinRoom={(room) =>
+										handleJoinPrivateRoom(room)
+									}
+								/>
+								{showJoinDialog && selectedRoom && (
+									<PrivateRoomDialog
+										onJoin={joinPrivateRoom}
+										onClose={() => setShowJoinDialog(false)}
+										roomName={selectedRoom.roomName}
+										description={selectedRoom.description}
+									/>
+								)}
+							</>
 						)}
 					</div>
 				)}
