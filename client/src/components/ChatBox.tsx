@@ -29,7 +29,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 
 	useEffect(() => {
 		if (room) {
-			// Use a single message handler for all message types
 			const handleMessage = (
 				type: "system" | "chat",
 				message: Message
@@ -42,7 +41,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 				handleMessage("system", message)
 			);
 
-			// Cleanup listeners when component unmounts or room changes
 			return () => {
 				room.removeAllListeners();
 			};
@@ -90,49 +88,44 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 					</div>
 
 					<div className="flex-1 overflow-y-auto p-4 space-y-3">
-						{messages
-							.filter(
-								(msg, index, self) =>
-									// Filter out duplicate messages
-									index ===
-									self.findIndex(
-										(m) =>
-											m.text === msg.text &&
-											m.sender === msg.sender &&
-											m.timestamp === msg.timestamp
-									)
-							)
-							.map((msg, index) => (
+						{messages.map((msg, index) => (
+							<div
+								key={index}
+								className={`flex items-center space-x-2 w-full ${
+									msg.sender === username ? "justify-end" : ""
+								}`}
+							>
+								{msg.type !== "system" && (
+									<div
+										className={`w-8 h-8 flex items-center justify-center rounded-full text-white font-bold ${
+											msg.sender === username
+												? "bg-blue-600"
+												: "bg-gray-400"
+										}`}
+									>
+										{msg.sender?.charAt(0).toUpperCase() ||
+											"?"}
+									</div>
+								)}
+
 								<div
-									key={index}
-									className={`${
+									className={`max-w-[100%] p-3 px-10 rounded-lg shadow-md ${
 										msg.type === "system"
 											? "text-center text-gray-500 text-sm"
 											: msg.sender === username
-											? "flex flex-col items-end"
-											: "flex flex-col items-start"
+											? "bg-blue-600 text-white"
+											: "bg-gray-100 text-gray-900"
 									}`}
 								>
-									{msg.type === "system" ? (
-										<span>{msg.text}</span>
-									) : (
-										<div
-											className={`max-w-[80%] rounded-lg p-3 ${
-												msg.sender === username
-													? "bg-blue-600 text-white"
-													: "bg-gray-100 text-gray-900"
-											}`}
-										>
-											<p className="text-xs font-medium mb-1">
-												{msg.sender}
-											</p>
-											<p className="text-sm">
-												{msg.text}
-											</p>
-										</div>
+									{msg.type !== "system" && (
+										<p className="text-xs font-medium mb-1">
+											{msg.sender}
+										</p>
 									)}
+									<span className="text-sm">{msg.text}</span>
 								</div>
-							))}
+							</div>
+						))}
 						<div ref={messagesEndRef} />
 					</div>
 
