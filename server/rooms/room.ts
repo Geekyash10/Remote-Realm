@@ -69,8 +69,24 @@ export class MyRoom extends Room<RoomState> {
             options.roomPassword,
             isPrivate
         ));
+
+        this.onMessage("chat", (_client, message) => {
+            this.broadcast("chat", {
+                text: message.text,
+                sender: message.sender,
+                timestamp: new Date().toISOString()
+            });
+        });
     
         console.log(`${isPrivate ? 'Private' : 'Public'} Room created! Room ID: ${this.roomId}`);
+    }
+
+    private broadcastPlayerUpdate() {
+        const playerNames = Array.from(this.state.players).map(p => p?.name ?? 'Unknown');
+        console.log("Broadcasting players update:", playerNames); // Add this
+        this.broadcast("update", {
+            players: playerNames
+        });
     }
 
     async onJoin(client: Client, options: { 
@@ -111,6 +127,11 @@ export class MyRoom extends Room<RoomState> {
 
                 const newPlayer = new Player(client.sessionId, options.playerName);
                 this.state.players.push(newPlayer);
+                this.broadcast("system", {
+                    text: `${options.playerName} has joined the room`,
+                    type: "system",
+                });
+                  this.broadcastPlayerUpdate();
 
                 console.log(`Player ${options.playerName} joined private room ${this.roomId}!`);
             } catch (error) {
@@ -121,18 +142,28 @@ export class MyRoom extends Room<RoomState> {
             // For public rooms
             const newPlayer = new Player(client.sessionId, options.playerName);
             this.state.players.push(newPlayer);
+            this.broadcast("system", {
+                text: `${options.playerName} has joined the room`,
+                type: "system",
+            });
+            this.broadcastPlayerUpdate();
             console.log(`Player ${options.playerName} joined public room ${this.roomId}!`);
         }
+
+        // this.broadcast("system", {
+        //     text: `${options.playerName} joined the room`,
+        //     type: "system",
+        // });
     }
 
-        
-    
     onLeave(client: Client) {
         const leavingPlayer = this.state.players.find(p => p.sessionId === client.sessionId);
         
         this.state.players = new ArraySchema<Player>(
             ...this.state.players.filter(player => player.sessionId !== client.sessionId)
         );
+
+       
 
         // if room is private, remove the player from the database
         if (this.state.isPrivate) {
@@ -145,6 +176,12 @@ export class MyRoom extends Room<RoomState> {
                 console.log("Player removed from the database!");
             });
         }
+        if(leavingPlayer)
+            this.broadcast("system", {
+                text: `${leavingPlayer?.name} has left the room`,
+                type: "system",
+            });
+        this.broadcastPlayerUpdate();
         console.log(`Player ${leavingPlayer?.name || client.sessionId} left the room!`);
 
         // Auto-dispose if no players remain
@@ -152,6 +189,7 @@ export class MyRoom extends Room<RoomState> {
             console.log(`Room ${this.roomId} is empty - disposing...`);
             this.disconnect();
         }
+        
     }
 
     async onDispose() {
@@ -166,7 +204,7 @@ export class MyRoom extends Room<RoomState> {
         }
         console.log(`Room ${this.roomId} disposed!`);
     }
-    // fetch private room data from the database
+    
 }
 
 

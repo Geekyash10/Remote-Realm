@@ -9,13 +9,11 @@ import {
 	ArrowRight,
 	Lock,
 	PlusCircle,
+	Home,
 } from "lucide-react";
 
 import "./App.css";
-
-interface PlayerType {
-	name: string;
-}
+import ChatBox from "./components/ChatBox";
 
 interface RoomInfo {
 	roomId: string;
@@ -39,33 +37,56 @@ function App() {
 	const [username, setUsername] = useState<string>("");
 	const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]);
 	const [error, setError] = useState<string>("");
-
 	// Private room creation state
 	const [roomName, setRoomName] = useState<string>("");
 	const [roomDescription, setRoomDescription] = useState<string>("");
 	const [roomPassword, setRoomPassword] = useState<string>("");
-
 	// Private rooms list state
 	const [privateRooms, setPrivateRooms] = useState<RoomInfo[]>([]);
-
 	const [showJoinDialog, setShowJoinDialog] = useState(false);
 	const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
 
-	const handleJoinPrivateRoom = (room: RoomInfo) => {
-		setSelectedRoom(room);
-		setShowJoinDialog(true);
-	};
-
 	useEffect(() => {
 		if (currentRoom) {
-			currentRoom.onStateChange((state) => {
-				const playerNames = state.players.map(
-					(player: PlayerType) => player.name
+			currentRoom.onMessage("update", (message) => {
+				console.log("Update received:", message);
+				setJoinedPlayers(message.players);
+			});
+			currentRoom.state.players.onAdd((player: any) => {
+				console.log("Player added to state:", player.name); // Add this
+				const playerNames = Array.from(currentRoom.state.players).map(
+					(p: any) => p.name
+				);
+				setJoinedPlayers(playerNames);
+			});
+
+			currentRoom.state.players.onRemove((player: any) => {
+				console.log("Player removed from state:", player.name); // Add this
+				const playerNames = Array.from(currentRoom.state.players).map(
+					(p: any) => p.name
 				);
 				setJoinedPlayers(playerNames);
 			});
 		}
 	}, [currentRoom]);
+
+	const goToHome = () => {
+		if (currentRoom) {
+			leaveRoom();
+		}
+		// Reset all states
+		setJoinState("initial");
+		setUsername("");
+		setRoomName("");
+		setRoomDescription("");
+		setRoomPassword("");
+		setError("");
+	};
+
+	const handleJoinPrivateRoom = (room: RoomInfo) => {
+		setSelectedRoom(room);
+		setShowJoinDialog(true);
+	};
 
 	const handleJoinPublicClick = () => {
 		setJoinState("name-input");
@@ -170,6 +191,17 @@ function App() {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+			{joinState !== "initial" && (
+				<div className="absolute top-4 left-4">
+					<button
+						onClick={goToHome}
+						className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200 flex items-center gap-2"
+					>
+						<Home className="w-6 h-6" />
+						<span className="text-sm font-medium">Home</span>
+					</button>
+				</div>
+			)}
 			<div className="container mx-auto px-4 py-16">
 				{joinState === "initial" && (
 					<div className="max-w-2xl mx-auto text-center">
@@ -426,6 +458,7 @@ function App() {
 								</div>
 							</div>
 						</div>
+						<ChatBox room={currentRoom} username={username} />
 					</div>
 				)}
 			</div>
