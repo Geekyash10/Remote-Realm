@@ -11,20 +11,25 @@ export const Game: React.FC<GameProps> = ({ width = 800, height = 600 }) => {
 	useEffect(() => {
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
-			width,
-			height,
+			backgroundColor: "CFF5FC",
 			parent: "game-container",
+			pixelArt: true,
+
 			scene: GameScene,
 			physics: {
 				default: "arcade",
 				arcade: {
 					gravity: { y: 0, x: 0 },
-					debug: false,
+					debug: true,
 				},
 			},
-			scale: {
-				mode: Phaser.Scale.FIT,
-				autoCenter: Phaser.Scale.CENTER_BOTH,
+			mode: Phaser.Scale.RESIZE,
+
+			width: window.innerWidth,
+			height: window.innerHeight,
+			min: {
+				width: 800,
+				height: 600,
 			},
 		};
 
