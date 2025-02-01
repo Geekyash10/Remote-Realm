@@ -655,13 +655,13 @@
  "nextobjectid":43,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.1",
+ "tiledversion":"1.11.2",
  "tileheight":32,
  "tilesets":[
         {
          "columns":32,
          "firstgid":1,
-         "image":"\/public\/Assets\/Room_Builder_Walls.png",
+         "image":"Room_Builder_Walls.png",
          "imageheight":1280,
          "imagewidth":1024,
          "margin":0,
@@ -11655,7 +11655,7 @@
         {
          "columns":16,
          "firstgid":1281,
-         "image":"\/public\/Assets\/Room_Builder_Office.png",
+         "image":"Room_Builder_Office.png",
          "imageheight":448,
          "imagewidth":512,
          "margin":0,
@@ -12686,7 +12686,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12695,7 +12695,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12704,7 +12704,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12713,7 +12713,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12722,7 +12722,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12731,7 +12731,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12740,7 +12740,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12749,7 +12749,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 },
             
@@ -12759,7 +12759,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12768,7 +12768,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12831,7 +12831,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12840,7 +12840,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12849,7 +12849,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12858,7 +12858,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12894,7 +12894,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12903,7 +12903,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -12912,7 +12912,7 @@
                         {
                          "name":"collides",
                          "type":"bool",
-                         "value":false
+                         "value":true
                         }]
                 }, 
                 {
@@ -13561,7 +13561,7 @@
         {
          "columns":15,
          "firstgid":1505,
-         "image":"\/public\/Assets\/Room_Builder_Floors.png",
+         "image":"Room_Builder_Floors.png",
          "imageheight":1280,
          "imagewidth":480,
          "margin":0,
@@ -13574,7 +13574,7 @@
         {
          "columns":16,
          "firstgid":2105,
-         "image":"\/public\/Assets\/Modern_Office_Black_Shadow.png",
+         "image":"Modern_Office_Black_Shadow.png",
          "imageheight":1696,
          "imagewidth":512,
          "margin":0,
@@ -13587,7 +13587,7 @@
         {
          "columns":16,
          "firstgid":2953,
-         "image":"\/public\/Assets\/Generic.png",
+         "image":"Generic.png",
          "imageheight":2496,
          "imagewidth":512,
          "margin":0,
@@ -13600,7 +13600,7 @@
         {
          "columns":16,
          "firstgid":4201,
-         "image":"\/public\/Assets\/Classroom_and_library.png",
+         "image":"Classroom_and_library.png",
          "imageheight":1088,
          "imagewidth":512,
          "margin":0,
@@ -13613,7 +13613,7 @@
         {
          "columns":16,
          "firstgid":4745,
-         "image":"\/public\/Assets\/Basement.png",
+         "image":"Basement.png",
          "imageheight":1600,
          "imagewidth":512,
          "margin":0,
@@ -13626,7 +13626,7 @@
         {
          "columns":1,
          "firstgid":5545,
-         "image":"\/public\/Assets\/chair.png",
+         "image":"chair.png",
          "imageheight":1472,
          "imagewidth":32,
          "margin":0,

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import * as Colyseus from 'colyseus.js'
 
 // Import tile images
 import Basement from "/Assets/Basement.png";
@@ -11,19 +12,36 @@ import RoomBuilderFloors from "/Assets/Room_Builder_Floors.png";
 import ClassroomLibrary from "/Assets/Classroom_and_library.png";
 import player_photo from '/Assets/character/adam.png'
 import player_json from '/Assets/character/adam.json?url'
+import { createCharacterAnims } from "../Character/CharacterAnims";
+import '../Character/Char';
 
 // Import map JSON
 import mapSmall from '/Assets/mapSmall.json?url';
 
 export class GameScene extends Phaser.Scene {
   private map!: Phaser.Tilemaps.Tilemap;
-   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
-    private player!: Phaser.Physics.Arcade.Sprite
-    private playerDirection!: string
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys
+  private player!: Phaser.Physics.Arcade.Sprite
+  private playerDirection!: string
+  private client!: Colyseus.Client
 
   constructor() {
     super("GameScene");
   }
+
+  async init() {
+    try {
+      this.client = new Colyseus.Client(`ws://${location.hostname}:3000`)
+      const room = await this.client.joinOrCreate('game')
+      console.log(room.sessionId)
+    } catch (e) {
+      this.client = new Colyseus.Client(`ws://${location.hostname}:3000`)
+      const room = await this.client.joinOrCreate('game')
+      console.log(room.sessionId)
+      console.log(e)
+    }
+  }
+
 
   preload() {
     // Load the tilemap JSON
@@ -43,7 +61,10 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard!.createCursorKeys()
   }
 
-  create() {
+  async create() {
+    // const room = await this.client.joinOrCreate('game')
+    // console.log(room.sessionId)
+    createCharacterAnims(this.anims);
     this.createMap();
   }
 
@@ -94,6 +115,7 @@ export class GameScene extends Phaser.Scene {
     console.log(groundLayer1);
     console.log(groundLayer2);
     console.log(groundLayer3);
+
     const debugGraphics = this.add.graphics().setAlpha(0.7)
     if (groundLayer1) {
       groundLayer1.renderDebug(debugGraphics, {
@@ -109,7 +131,7 @@ export class GameScene extends Phaser.Scene {
       collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
       faceColor: new Phaser.Display.Color(40, 39, 37, 255),
     })
-}
+  }
     if(groundLayer3)
     {
     groundLayer3.renderDebug(debugGraphics, {
@@ -117,7 +139,7 @@ export class GameScene extends Phaser.Scene {
       collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
       faceColor: new Phaser.Display.Color(40, 39, 37, 255),
     })
-}
+  }
 
     // Create each layer
     // layerNames.forEach(layerName => {
@@ -138,142 +160,128 @@ export class GameScene extends Phaser.Scene {
     //           faceColor: new Phaser.Display.Color(40, 39, 37, 255),
     //         })
     // });
-    
 
-    this.player = this.physics.add.sprite(
-        this.sys.canvas.width * 0.35,
-        this.sys.canvas.height * 1,
-        'player',
-        'Adam_idle_anim_19.png'
-      )
-      this.playerDirection = 'down'
+
+    this.player = this.add.player(705, 500, 'player')
+
+    // this.player = this.physics.add.sprite(
+    //     this.sys.canvas.width * 0.35,
+    //     this.sys.canvas.height * 1,
+    //     'player',
+    //     'Adam_idle_anim_19.png'
+    //   )
+    //   this.player.body!.setSize(this.player.width * 0.5, this.player.height * 0.3)
+    //   this.player.body!.setOffset(8, 33.6)
   
-      const animsFrameRate = 15
+    //   const animsFrameRate = 15
   
-      this.anims.create({
-        key: 'player_idle_right',
-        frames: this.anims.generateFrameNames('player', {
-          start: 1,
-          end: 6,
-          prefix: 'Adam_idle_anim_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate * 0.6,
-      })
+    //   this.anims.create({
+    //     key: 'player_idle_right',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 1,
+    //       end: 6,
+    //       prefix: 'Adam_idle_anim_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate * 0.6,
+    //   })
   
-      this.anims.create({
-        key: 'player_idle_up',
-        frames: this.anims.generateFrameNames('player', {
-          start: 7,
-          end: 12,
-          prefix: 'Adam_idle_anim_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate * 0.6,
-      })
+    //   this.anims.create({
+    //     key: 'player_idle_up',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 7,
+    //       end: 12,
+    //       prefix: 'Adam_idle_anim_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate * 0.6,
+    //   })
   
-      this.anims.create({
-        key: 'player_idle_left',
-        frames: this.anims.generateFrameNames('player', {
-          start: 13,
-          end: 18,
-          prefix: 'Adam_idle_anim_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate * 0.6,
-      })
+    //   this.anims.create({
+    //     key: 'player_idle_left',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 13,
+    //       end: 18,
+    //       prefix: 'Adam_idle_anim_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate * 0.6,
+    //   })
   
-      this.anims.create({
-        key: 'player_idle_down',
-        frames: this.anims.generateFrameNames('player', {
-          start: 19,
-          end: 24,
-          prefix: 'Adam_idle_anim_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate * 0.6,
-      })
+    //   this.anims.create({
+    //     key: 'player_idle_down',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 19,
+    //       end: 24,
+    //       prefix: 'Adam_idle_anim_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate * 0.6,
+    //   })
   
-      this.anims.create({
-        key: 'player_run_right',
-        frames: this.anims.generateFrameNames('player', {
-          start: 1,
-          end: 6,
-          prefix: 'Adam_run_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate,
-      })
+    //   this.anims.create({
+    //     key: 'player_run_right',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 1,
+    //       end: 6,
+    //       prefix: 'Adam_run_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate,
+    //   })
   
-      this.anims.create({
-        key: 'player_run_up',
-        frames: this.anims.generateFrameNames('player', {
-          start: 7,
-          end: 12,
-          prefix: 'Adam_run_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate,
-      })
+    //   this.anims.create({
+    //     key: 'player_run_up',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 7,
+    //       end: 12,
+    //       prefix: 'Adam_run_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate,
+    //   })
   
-      this.anims.create({
-        key: 'player_run_left',
-        frames: this.anims.generateFrameNames('player', {
-          start: 13,
-          end: 18,
-          prefix: 'Adam_run_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate,
-      })
+    //   this.anims.create({
+    //     key: 'player_run_left',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 13,
+    //       end: 18,
+    //       prefix: 'Adam_run_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate,
+    //   })
   
-      this.anims.create({
-        key: 'player_run_down',
-        frames: this.anims.generateFrameNames('player', {
-          start: 19,
-          end: 24,
-          prefix: 'Adam_run_',
-          suffix: '.png',
-        }),
-        repeat: -1,
-        frameRate: animsFrameRate,
-      })
-  
+    //   this.anims.create({
+    //     key: 'player_run_down',
+    //     frames: this.anims.generateFrameNames('player', {
+    //       start: 19,
+    //       end: 24,
+    //       prefix: 'Adam_run_',
+    //       suffix: '.png',
+    //     }),
+    //     repeat: -1,
+    //     frameRate: animsFrameRate,
+    //   })
+
+      // this.player.play('player_idle_down', true)
       this.cameras.main.zoom = 1.5
       this.cameras.main.startFollow(this.player)
+      if(groundLayer1) this.physics.add.collider(this.player, groundLayer1)
+      if(groundLayer2) this.physics.add.collider(this.player, groundLayer2)
+      if(groundLayer3) this.physics.add.collider(this.player, groundLayer3)
     }
   
     update(_t: number, _dt: number) {
-      if (!this.cursors || !this.player) {
-        return
-      }
-      const speed = 200
-      if (this.cursors.left?.isDown) {
-        this.player.play('player_run_left', true)
-        this.player.setVelocity(-speed, 0)
-        this.playerDirection = 'left'
-      } else if (this.cursors.right?.isDown) {
-        this.player.play('player_run_right', true)
-        this.player.setVelocity(speed, 0)
-        this.playerDirection = 'right'
-      } else if (this.cursors.up?.isDown) {
-        this.player.play('player_run_up', true)
-        this.player.setVelocity(0, -speed)
-        this.playerDirection = 'up'
-      } else if (this.cursors.down?.isDown) {
-        this.player.play('player_run_down', true)
-        this.player.setVelocity(0, speed)
-        this.playerDirection = 'down'
-      } else {
-        this.player.setVelocity(0, 0)
-        this.player.play(`player_idle_${this.playerDirection}`, true)
+      if(this.player){
+        this.player.update(this.cursors)
       }
     }
    
