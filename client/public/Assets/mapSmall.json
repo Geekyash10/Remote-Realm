@@ -661,7 +661,7 @@
         {
          "columns":32,
          "firstgid":1,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Room_Builder_Walls.png",
+         "image":"\/public\/Assets\/Room_Builder_Walls.png",
          "imageheight":1280,
          "imagewidth":1024,
          "margin":0,
@@ -674,7 +674,7 @@
         {
          "columns":16,
          "firstgid":1281,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Room_Builder_Office.png",
+         "image":"\/public\/Assets\/Room_Builder_Office.png",
          "imageheight":448,
          "imagewidth":512,
          "margin":0,
@@ -687,7 +687,7 @@
         {
          "columns":15,
          "firstgid":1505,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Room_Builder_Floors.png",
+         "image":"\/public\/Assets\/Room_Builder_Floors.png",
          "imageheight":1280,
          "imagewidth":480,
          "margin":0,
@@ -700,7 +700,7 @@
         {
          "columns":16,
          "firstgid":2105,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Modern_Office_Black_Shadow.png",
+         "image":"\/public\/Assets\/Modern_Office_Black_Shadow.png",
          "imageheight":1696,
          "imagewidth":512,
          "margin":0,
@@ -713,7 +713,7 @@
         {
          "columns":16,
          "firstgid":2953,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Generic.png",
+         "image":"\/public\/Assets\/Generic.png",
          "imageheight":2496,
          "imagewidth":512,
          "margin":0,
@@ -726,7 +726,7 @@
         {
          "columns":16,
          "firstgid":4201,
-         "image":"SkyOffice-c09a16d4989cd537dcf07375207a594f387c68d9\/public\/assets\/map\/Classroom_and_library.png",
+         "image":"\/public\/Assets\/Classroom_and_library.png",
          "imageheight":1088,
          "imagewidth":512,
          "margin":0,
@@ -739,7 +739,7 @@
         {
          "columns":16,
          "firstgid":4745,
-         "image":"..\/Jiit\/Sem 6\/Minor\/SkyOffice\/client\/public\/assets\/tileset\/Basement.png",
+         "image":"\/public\/Assets\/Basement.png",
          "imageheight":1600,
          "imagewidth":512,
          "margin":0,
@@ -752,7 +752,7 @@
         {
          "columns":1,
          "firstgid":5545,
-         "image":"..\/Jiit\/Sem 6\/Minor\/SkyOffice\/client\/public\/assets\/items\/chair.png",
+         "image":"\/public\/Assets\/chair.png",
          "imageheight":1472,
          "imagewidth":32,
          "margin":0,

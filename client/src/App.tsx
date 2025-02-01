@@ -14,6 +14,7 @@ import {
 
 import "./App.css";
 import ChatBox from "./components/ChatBox";
+import { Game } from "./Game/Game";
 
 interface RoomInfo {
 	roomId: string;
@@ -462,6 +463,8 @@ function App() {
 					</div>
 				)}
 			</div>
+
+			<Game width={1300} height={950} />
 		</div>
 	);
 }
