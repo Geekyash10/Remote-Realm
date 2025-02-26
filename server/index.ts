@@ -7,6 +7,8 @@ import mongoose from 'mongoose';
 import { RoomModel } from './models/roomModel';
 import cors from "cors";
 import dotenv from 'dotenv';
+import { monitor } from '@colyseus/monitor';
+
 dotenv.config();
 
 const database: string | undefined = process.env.DATABASE_URL;
@@ -31,6 +33,9 @@ const gameServer = new Server({
 
 // Define the game room
 gameServer.define('game', MyRoom);
+
+
+app.use('/colyseus',monitor());
 
 app.get('/', (req, res) => {
     res.send("Colyseus Server Running!");

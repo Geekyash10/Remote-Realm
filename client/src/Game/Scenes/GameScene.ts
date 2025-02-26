@@ -192,7 +192,7 @@ export class GameScene extends Phaser.Scene {
 
 
     const layerNames = this.map.layers.map(layer => layer.name);
-    // console.log(layerNames);
+    console.log(layerNames);
 
     const ground = [wallsTileset, officeTileset, floorsTileset].filter(ts => ts !== null)
     const obj = [basementTileset, modernOfficeTileset, genericTileset, chairTileset, classroomTileset].filter(ts => ts !== null)
