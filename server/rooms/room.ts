@@ -1,21 +1,26 @@
 import { Room, Client } from "colyseus"; // Import the Room and Client classes from the colyseus package
-import { Schema, type, ArraySchema } from "@colyseus/schema"; // Import the Schema, type, and ArraySchema classes from the @colyseus/schema package
+import { Schema, type, ArraySchema, MapSchema } from "@colyseus/schema"; // Import the Schema, type, and ArraySchema classes from the @colyseus/schema package
 import { RoomModel } from "../models/roomModel";
 
 
 class Player extends Schema {
     @type("string") sessionId: string; // Define a sessionId property of type string
     @type("string") name: string; // Define a name property of type string
+    @type("number") x: number = 705;
+    @type("number") y: number = 500;
+    @type("string") animation: string = "player_idle_down";
+    @type("string") character: string; // Add character property
 
-    constructor(sessionId: string, name: string) {
+    constructor(sessionId: string, name: string, character: string) {
         super();
         this.sessionId = sessionId;
         this.name = name;
+        this.character = character;
     } // Define a constructor that takes a sessionId and name as arguments and assigns them to the sessionId and name properties
 }
 
 class RoomState extends Schema {
-    @type([Player]) players: ArraySchema<Player>;
+    @type({ map: Player }) players = new MapSchema<Player>();
     @type("string") roomName: string;
     @type("string") roomDescription: string;
     @type("string") roomPassword: string; // optional
@@ -23,7 +28,6 @@ class RoomState extends Schema {
 
     constructor(roomName: string, roomDescription: string, roomPassword: string, isPrivate: boolean) {
         super();
-        this.players = new ArraySchema<Player>();
         this.roomName = roomName;
         this.roomDescription = roomDescription;
         this.roomPassword = roomPassword; // optional
@@ -35,167 +39,203 @@ class RoomState extends Schema {
 
 // In MyRoom.ts
 export class MyRoom extends Room<RoomState> {
-    async onCreate(options: {
-        roomName: string;
-        roomDescription: string;
-        roomPassword: string;
-        isPrivate: boolean;
-    }) {
-        const isPrivate = options.isPrivate;
+    async onCreate(options: any) {
+        // Set room type
+        const isPrivate = options.isPrivate || false;
+
+        // Set metadata to help with room filtering
+        this.setMetadata({
+            isPrivate,
+            roomType: isPrivate ? 'private' : 'public'
+        });
+
+        this.setState(new RoomState(
+            options.roomName || "Public Room",
+            options.roomDescription || "",
+            options.roomPassword || "",
+            isPrivate
+        ));
+
+        // Handle player position updates with improved performance
+        this.onMessage("updatePlayer", (client, message) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player) {
+                player.x = message.x;
+                player.y = message.y;
+                player.animation = message.animation;
+                
+                // Broadcast position update to all clients except sender
+                // this.broadcast("playerMoved", {
+                //     sessionId: client.sessionId,
+                //     x: message.x,
+                //     y: message.y,
+                //     animation: message.animation
+                // }, { except: client });
+            }
+        });
+
+        // Handle chat messages
+        this.onMessage("chat", (client, message) => {
+            this.broadcast("chat", {
+                text: message.text,
+                sender: client.sessionId,
+                timestamp: new Date().toISOString()
+            });
+        });
+
+        this.onMessage("chat", (client, message) => {
+            this.broadcast("chat", message);
+        });
+        this.onMessage("playerMoved", (client, message) => {
+            const player = this.state.players.get(client.sessionId);
+            if (player) {
+                player.x = message.x;
+                player.y = message.y;
+                player.animation = message.animation;
         
-        // if room is private, save it to the database
-        if (isPrivate) {
+                // Now broadcast the movement update to all clients
+                this.broadcast("playerMoved", {
+                    sessionId: client.sessionId,
+                    x: player.x,
+                    y: player.y,
+                    animation: player.animation
+                }, { except: client });
+            }
+        });
+        
+
+        this.onMessage("system", (client, message) => {
+            this.broadcast("system", message);
+        });
+
+        if (options.isPrivate) {
             try {
-                // Wait for the room to be saved before allowing joins
                 await new RoomModel({
                     roomId: this.roomId,
                     roomName: options.roomName,
                     roomDescription: options.roomDescription,
                     roomPassword: options.roomPassword,
-                    isPrivate: isPrivate,
+                    isPrivate: true,
                     players: []
                 }).save();
-                
-                console.log("Room saved to the database!");
             } catch (error) {
                 console.error("Error saving room:", error);
                 throw error;
             }
         }
-
-        this.setState(new RoomState(
-            options.roomName,
-            options.roomDescription,
-            options.roomPassword,
-            isPrivate
-        ));
-
-        this.onMessage("chat", (_client, message) => {
-            this.broadcast("chat", {
-                text: message.text,
-                sender: message.sender,
-                timestamp: new Date().toISOString()
-            });
-        });
-    
-        console.log(`${isPrivate ? 'Private' : 'Public'} Room created! Room ID: ${this.roomId}`);
     }
 
-    private broadcastPlayerUpdate() {
-        const playerNames = Array.from(this.state.players).map(p => p?.name ?? 'Unknown');
-        console.log("Broadcasting players update:", playerNames); // Add this
-        this.broadcast("update", {
-            players: playerNames
-        });
-    }
+    async onJoin(client: Client, options: any) {
+        // Validate room access
 
-    async onJoin(client: Client, options: { 
-        playerName: string, 
-        roomId?: string,
-        roomPassword?: string 
-    }) {
-        console.log(`Joining room ID: ${this.roomId}, Player: ${options.playerName}`);
+        console.log(this.state.isPrivate);
+        console.log(options.isPrivate);
+      
 
-        // if room is private, check the password
-        if (this.state.isPrivate) {
-            try {
-                // Add a small delay to ensure the database operation is complete
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                const room = await RoomModel.findOne({ roomId: this.roomId });
-                
-                if (!room) {
-                    console.log(`No room found with ID: ${this.roomId}`);
-                    throw new Error("Room not found");
-                }
+        const playerName = options.playerName || "Guest"; // Ensure playerName is provided
 
-                console.log(`Room found: ${room.roomName}, Verifying password...`);
+        console.log(`Player ${playerName} joining with ID ${client.sessionId}`);
 
-                if (room.roomPassword !== options.roomPassword) {
-                    throw new Error("Incorrect room password");
-                }
-
-                const updatedRoom = await RoomModel.findOneAndUpdate(
-                    { roomId: this.roomId },
-                    { $push: { players: { sessionId: client.sessionId, name: options.playerName } } },
-                    { new: true }
-                );
-
-                if (!updatedRoom) {
-                    throw new Error("Failed to update player list");
-                }
-
-                const newPlayer = new Player(client.sessionId, options.playerName);
-                this.state.players.push(newPlayer);
-                this.broadcast("system", {
-                    text: `${options.playerName} has joined the room`,
-                    type: "system",
-                });
-                  this.broadcastPlayerUpdate();
-
-                console.log(`Player ${options.playerName} joined private room ${this.roomId}!`);
-            } catch (error) {
-                console.error("Join room error:", error);
-                throw error;
-            }
-        } else {
-            // For public rooms
-            const newPlayer = new Player(client.sessionId, options.playerName);
-            this.state.players.push(newPlayer);
-            this.broadcast("system", {
-                text: `${options.playerName} has joined the room`,
-                type: "system",
-            });
-            this.broadcastPlayerUpdate();
-            console.log(`Player ${options.playerName} joined public room ${this.roomId}!`);
+        // Check if the player already exists in the state
+        if (this.state.players.has(client.sessionId)) {
+            console.warn(`Player with session ID ${client.sessionId} already exists`);
+            return;
         }
 
-        // this.broadcast("system", {
-        //     text: `${options.playerName} joined the room`,
-        //     type: "system",
-        // });
-    }
-
-    onLeave(client: Client) {
-        const leavingPlayer = this.state.players.find(p => p.sessionId === client.sessionId);
-        
-        this.state.players = new ArraySchema<Player>(
-            ...this.state.players.filter(player => player.sessionId !== client.sessionId)
+        // Create new player with position based on room type
+        const player = new Player(
+            client.sessionId, 
+            playerName,
+            options.character || 'adam'
         );
 
-       
-
-        // if room is private, remove the player from the database
+        // Different spawn areas for public and private rooms
         if (this.state.isPrivate) {
-            RoomModel.findOneAndUpdate
-            (
-                { roomName: this.state.roomName },
-                { $pull: { players: { sessionId: client.sessionId } } },
-                { new: true }
-            ).then(() => {
-                console.log("Player removed from the database!");
-            });
-        }
-        if(leavingPlayer)
-            this.broadcast("system", {
-                text: `${leavingPlayer?.name} has left the room`,
-                type: "system",
-            });
-        this.broadcastPlayerUpdate();
-        console.log(`Player ${leavingPlayer?.name || client.sessionId} left the room!`);
-
-        // Auto-dispose if no players remain
-        if (this.state.players.length === 0) {
-            console.log(`Room ${this.roomId} is empty - disposing...`);
-            this.disconnect();
+            // Private room spawn area
+            player.x = 705 + (Math.random() * 100);
+            player.y = 500 + (Math.random() * 100);
+        } else {
+            // Public room spawn area - wider area
+            player.x = 705 + (Math.random() * 300) - 150;
+            player.y = 500 + (Math.random() * 300) - 150;
         }
         
+        this.state.players.set(client.sessionId, player);
+
+        // Notify other clients
+        this.broadcast("playerJoined", {
+            sessionId: client.sessionId,
+            name: playerName,
+            character: options.character || 'adam',
+            x: player.x,
+            y: player.y,
+            animation: player.animation
+        }, { except: client });
+
+        // Send room info to the joining client
+        client.send("roomInfo", {
+            isPrivate: this.state.isPrivate,
+            currentPlayers: this.clients.length
+        });
+
+        // Update the room model in the database
+        if (this.state.isPrivate) {
+            try {
+                await RoomModel.findOneAndUpdate(
+                    { roomId: this.roomId },
+                    { $push: { players: { sessionId: client.sessionId, name: playerName } } }
+                );
+            } catch (error) {
+                console.error("Error updating room model:", error);
+            }
+        }
+    }
+
+    async onLeave(client: Client) {
+        const player = this.state.players.get(client.sessionId);
+        
+        if (player) {
+            this.state.players.delete(client.sessionId);
+
+            this.broadcast("playerLeft", {
+                sessionId: client.sessionId,
+                name: player.name
+            });
+
+            this.broadcast("update", {
+                players: Array.from(this.state.players.values()).map(p => ({
+                    sessionId: p.sessionId,
+                    name: p.name,
+                    x: p.x,
+                    y: p.y,
+                    animation: p.animation,
+                    character: p.character
+                }))
+            });
+
+            // Update the room model in the database
+            if (this.state.isPrivate) {
+                try {
+                    await RoomModel.findOneAndUpdate(
+                        { roomId: this.roomId },
+                        { $pull: { players: { sessionId: client.sessionId } } }
+                    );
+                } catch (error) {
+                    console.error("Error updating room model:", error);
+                }
+            }
+        }
+
+        console.log(`Player ${client.sessionId} has left the room ${this.roomId}`);
+
+        if (this.state.players.size === 0) {
+            this.disconnect();
+        }
     }
 
     async onDispose() {
         if (this.state.isPrivate) {
             try {
-                // Double-check to ensure room is removed from database
                 await RoomModel.findOneAndDelete({ roomId: this.roomId });
                 console.log(`Room ${this.roomId} cleaned up from database during disposal`);
             } catch (error) {
@@ -204,7 +244,6 @@ export class MyRoom extends Room<RoomState> {
         }
         console.log(`Room ${this.roomId} disposed!`);
     }
-    
 }
 
 

@@ -24,24 +24,129 @@ export class GameScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite
   private playerDirection!: string
   private client!: Colyseus.Client
+  private roomId?: string
+  private username?: string
+  private isPrivate?: boolean // Add isPrivate property
+  private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map()
+  private currentRoom?: Colyseus.Room
+  private listenersInitialized: boolean = false;
 
   constructor() {
     super("GameScene");
   }
 
-  async init() {
+  init(data: { roomId?: string; username?: string; room?: Colyseus.Room; isPrivate?: boolean }) {
+    console.log("GameScene init with data:", data);
+    this.roomId = data.roomId;
+    this.username = data.username;
+    this.currentRoom = data.room; // Set the room object
+    this.isPrivate = data.isPrivate; // Set the isPrivate property
+  }
+
+  async connectToRoom() {
     try {
-      this.client = new Colyseus.Client(`ws://${location.hostname}:3000`)
-      const room = await this.client.joinOrCreate('game')
-      console.log(room.sessionId)
-    } catch (e) {
-      this.client = new Colyseus.Client(`ws://${location.hostname}:3000`)
-      const room = await this.client.joinOrCreate('game')
-      console.log(room.sessionId)
-      console.log(e)
+      const client = new Colyseus.Client('ws://localhost:3000')
+      this.client = client
+  
+      console.log("Connecting to room with ID:", this.roomId, "and username:", this.username);
+      
+      if (this.currentRoom) {
+        console.log("Already connected to a room:", this.currentRoom.sessionId);
+        // Don't return here, just setup listeners if not already set up
+        this.setupRoomListeners(this.currentRoom);
+        return this.currentRoom;
+      }
+  
+      let room: Colyseus.Room;
+      if (this.isPrivate && this.roomId) {
+        room = await client.joinById(this.roomId, { username: this.username });
+      } else {
+        room = await client.joinOrCreate("game", { username: this.username });
+      }
+      
+      this.currentRoom = room;
+      this.setupRoomListeners(room);
+      console.log(`Connected to room:`, room.sessionId);
+      return room;
+    } catch (error) {
+      console.error("Error connecting to room:", error);
+      return null;
     }
   }
 
+  setupRoomListeners(room: Colyseus.Room) {
+
+    if(this.listenersInitialized) {
+      console.warn("Listeners already initialized");
+      return;
+    }
+    // When a new player joins
+    room.state.players.onAdd((player: any, sessionId: string) => {
+      console.log("Player joined:", sessionId, player);
+      if (sessionId === room.sessionId) {
+        // This is the local player, already created
+        return;
+      }
+
+      // Check if the player already exists
+      if (this.otherPlayers.has(sessionId)) {
+        console.warn(`Player with session ID ${sessionId} already exists`);
+        return;
+      }
+
+      // Create new player sprite for other players
+      const otherPlayer = this.add.player(player.x || 705, player.y || 500, 'player');
+      this.otherPlayers.set(sessionId, otherPlayer);
+      
+      // Listen for position updates
+      player.onChange(() => {
+        if (otherPlayer) {
+          otherPlayer.setPosition(player.x, player.y);
+          if (player.animation) {
+            otherPlayer.play(player.animation, true);
+          }
+        }
+      });
+    });
+
+    // When a player leaves
+    room.state.players.onRemove((player: any, sessionId: string) => {
+      const otherPlayer = this.otherPlayers.get(sessionId);
+      if (otherPlayer) {
+        otherPlayer.destroy();
+        this.otherPlayers.delete(sessionId);
+      }
+    });
+
+    // Send local player position updates more frequently
+    this.time.addEvent({
+      delay: 33, // Increase update frequency to ~30fps
+      callback: () => {
+        if (this.player && room) {
+          const currentAnimation = this.player.anims.currentAnim?.key || 'player_idle_down';
+          room.send("updatePlayer", {
+            x: this.player.x,
+            y: this.player.y,
+            animation: currentAnimation
+          });
+        }
+      },
+      loop: true
+    });
+
+    // Listen for player movement updates from server
+    room.onMessage("playerMoved", (message) => {
+      const otherPlayer = this.otherPlayers.get(message.sessionId);
+      if (otherPlayer) {
+        otherPlayer.setPosition(message.x, message.y);
+        if (message.animation) {
+          otherPlayer.play(message.animation, true);
+        }
+      }
+    });
+
+    this.listenersInitialized = true;
+  }
 
   preload() {
     // Load the tilemap JSON
@@ -62,8 +167,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   async create() {
-    // const room = await this.client.joinOrCreate('game')
-    // console.log(room.sessionId)
+    await this.connectToRoom();
     createCharacterAnims(this.anims);
     this.createMap();
   }
@@ -84,16 +188,11 @@ export class GameScene extends Phaser.Scene {
     const classroomTileset = this.map.addTilesetImage("Classroom_and_library", "classroom-library");
 
     // Add all tilesets to an array
-    console.log(this.map)
-    // const tilesets = [
-    //   basementTileset, modernOfficeTileset, genericTileset, chairTileset,
-    //   wallsTileset, officeTileset, floorsTileset, classroomTileset
-    // ].filter(ts => ts !== null); // Ensure no null values
+    // console.log(this.map)
 
-    // console.log(tilesets);
 
     const layerNames = this.map.layers.map(layer => layer.name);
-    console.log(layerNames);
+    // console.log(layerNames);
 
     const ground = [wallsTileset, officeTileset, floorsTileset].filter(ts => ts !== null)
     const obj = [basementTileset, modernOfficeTileset, genericTileset, chairTileset, classroomTileset].filter(ts => ts !== null)
@@ -104,17 +203,17 @@ export class GameScene extends Phaser.Scene {
     this.map.createLayer('tables', obj)
     // console.log(groundLayer)
 
-    console.log(groundLayer1);
-    console.log(groundLayer2);
-    console.log(groundLayer3);
+    // console.log(groundLayer1);
+    // console.log(groundLayer2);
+    // console.log(groundLayer3);
 
     if (groundLayer1) groundLayer1.setCollisionByProperty({ collides: true })
     if (groundLayer2) groundLayer2.setCollisionByProperty({ collides: true })
     if (groundLayer3) groundLayer3.setCollisionByProperty({ collides: true })
     // console.log(groundLayer)
-    console.log(groundLayer1);
-    console.log(groundLayer2);
-    console.log(groundLayer3);
+    // console.log(groundLayer1);
+    // console.log(groundLayer2);
+    // console.log(groundLayer3);
 
     const debugGraphics = this.add.graphics().setAlpha(0.7)
     if (groundLayer1) {
@@ -141,137 +240,11 @@ export class GameScene extends Phaser.Scene {
     })
   }
 
-    // Create each layer
-    // layerNames.forEach(layerName => {
-    //     console.log(layerName);
-    //     const layer = this.map.createLayer(layerName, tilesets, 0, 0);
-    //     console.log(layer);
-    //     if (!layer) {
-    //         console.error(Layer ${layerName} not found in tilemap!);
-    //         return;
-    //     }
-        
-    //     // Set collision for this layer if needed
-    //     layer.setCollisionByProperty({ collides: true });
-    //      const debugGraphics = this.add.graphics().setAlpha(0.7)
-    //         layer.renderDebug(debugGraphics, {
-    //           tileColor: null,
-    //           collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
-    //           faceColor: new Phaser.Display.Color(40, 39, 37, 255),
-    //         })
-    // });
+   
 
 
     this.player = this.add.player(705, 500, 'player')
 
-    // this.player = this.physics.add.sprite(
-    //     this.sys.canvas.width * 0.35,
-    //     this.sys.canvas.height * 1,
-    //     'player',
-    //     'Adam_idle_anim_19.png'
-    //   )
-    //   this.player.body!.setSize(this.player.width * 0.5, this.player.height * 0.3)
-    //   this.player.body!.setOffset(8, 33.6)
-  
-    //   const animsFrameRate = 15
-  
-    //   this.anims.create({
-    //     key: 'player_idle_right',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 1,
-    //       end: 6,
-    //       prefix: 'Adam_idle_anim_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate * 0.6,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_idle_up',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 7,
-    //       end: 12,
-    //       prefix: 'Adam_idle_anim_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate * 0.6,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_idle_left',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 13,
-    //       end: 18,
-    //       prefix: 'Adam_idle_anim_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate * 0.6,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_idle_down',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 19,
-    //       end: 24,
-    //       prefix: 'Adam_idle_anim_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate * 0.6,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_run_right',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 1,
-    //       end: 6,
-    //       prefix: 'Adam_run_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_run_up',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 7,
-    //       end: 12,
-    //       prefix: 'Adam_run_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_run_left',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 13,
-    //       end: 18,
-    //       prefix: 'Adam_run_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate,
-    //   })
-  
-    //   this.anims.create({
-    //     key: 'player_run_down',
-    //     frames: this.anims.generateFrameNames('player', {
-    //       start: 19,
-    //       end: 24,
-    //       prefix: 'Adam_run_',
-    //       suffix: '.png',
-    //     }),
-    //     repeat: -1,
-    //     frameRate: animsFrameRate,
-    //   })
-
-      // this.player.play('player_idle_down', true)
       this.cameras.main.zoom = 1.5
       this.cameras.main.startFollow(this.player)
       if(groundLayer1) this.physics.add.collider(this.player, groundLayer1)

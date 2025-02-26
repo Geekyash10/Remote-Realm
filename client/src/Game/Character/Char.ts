@@ -1,52 +1,63 @@
-import Phaser from 'phaser'
+import Phaser from 'phaser';
 
 declare global {
   namespace Phaser.GameObjects {
     interface GameObjectFactory {
-      player(x: number, y: number, texture: string, frame?: string | number): Player
+      player(x: number, y: number, texture: string, frame?: string | number): Player;
     }
   }
 }
+
 export default class Player extends Phaser.Physics.Arcade.Sprite {
+  private lastDirection: string = 'down';
+
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | number) {
-    super(scene, x, y, texture, frame)
-    this.anims.play('player_idle_down', true)
+    super(scene, x, y, texture, frame);
+    this.setDepth(y);
   }
+
   update(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-    if (!cursors) return
+    if (!cursors) return;
 
-    const speed = 200
-    let vx = 0
-    let vy = 0
-    if (cursors.left?.isDown) vx -= speed
-    if (cursors.right?.isDown) vx += speed
-    if (cursors.up?.isDown) {
-        vy -= speed
-        this.setDepth(this.y) //Changes player.depth if player.y changes
-      }
-    if (cursors.down?.isDown) {
-        vy += speed
-        this.setDepth(this.y) //Changes player.depth if player.y changes
+    const speed = 200;
+    let vx = 0;
+    let vy = 0;
+
+    if (cursors.left?.isDown) {
+      vx -= speed;
+      this.lastDirection = 'left';
     }
-    this.setVelocity(vx, vy)
-    this.body.velocity.setLength(speed)
+    if (cursors.right?.isDown) {
+      vx += speed;
+      this.lastDirection = 'right';
+    }
+    if (cursors.up?.isDown) {
+      vy -= speed;
+      this.lastDirection = 'up';
+    }
+    if (cursors.down?.isDown) {
+      vy += speed;
+      this.lastDirection = 'down';
+    }
 
-    // Update animation according to velocity.
-    if (vx > 0) {
-      this.play('player_run_right', true)
-    } else if (vx < 0) {
-      this.play('player_run_left', true)
-    } else if (vy > 0) {
-      this.play('player_run_down', true)
-    } else if (vy < 0) {
-      this.play('player_run_up', true)
+    // Ensure smooth movement
+    this.setVelocity(vx, vy);
+    if (this.body) {
+      this.body.velocity.setLength(speed);
+    }
+
+    // Update depth for proper layering
+    this.setDepth(this.y);
+
+    // Update animation immediately
+    if (vx || vy) {
+      this.play(`player_run_${this.lastDirection}`, true);
     } else {
-      const parts = this.anims.currentAnim.key.split('_')
-      parts[1] = 'idle'
-      this.play(parts.join('_'), true)
+      this.play(`player_idle_${this.lastDirection}`, true);
     }
   }
 }
+
 Phaser.GameObjects.GameObjectFactory.register(
   'player',
   function (
@@ -56,13 +67,15 @@ Phaser.GameObjects.GameObjectFactory.register(
     texture: string,
     frame?: string | number
   ) {
-    var sprite = new Player(this.scene, x, y, texture, frame)
-    this.displayList.add(sprite)
-    this.updateList.add(sprite)
-    this.scene.physics.world.enableBody(sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
-    const bodyScale = [0.4, 0.2]
-    sprite.body.setSize(sprite.width * bodyScale[0], sprite.height * bodyScale[1])
-    sprite.body.setOffset(16 * (1 - bodyScale[0]), 48 * (1 - bodyScale[1]))
-    return sprite
+    const sprite = new Player(this.scene, x, y, texture, frame);
+    this.displayList.add(sprite);
+    this.updateList.add(sprite);
+    this.scene.physics.world.enableBody(sprite, Phaser.Physics.Arcade.DYNAMIC_BODY);
+    const bodyScale = [0.4, 0.2];
+    if (sprite.body) {
+      sprite.body.setSize(sprite.width * bodyScale[0], sprite.height * bodyScale[1]);
+      sprite.body.setOffset(16 * (1 - bodyScale[0]), 48 * (1 - bodyScale[1]));
+    }
+    return sprite;
   }
-)
+);

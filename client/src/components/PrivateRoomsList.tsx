@@ -4,9 +4,9 @@ import { Lock, Users, Clock, Building2 } from "lucide-react";
 interface Room {
 	roomId: string;
 	roomName: string;
-	description: string;
+	description: string; // Add description property
 	isPrivate: boolean;
-	players?: Array<any>;
+	players: Array<any> | string[] | undefined; // Updated to accept undefined or string[]
 }
 
 interface PrivateRoomsListProps {
@@ -18,6 +18,7 @@ export const PrivateRoomsList: React.FC<PrivateRoomsListProps> = ({
 	rooms,
 	onJoinRoom,
 }) => {
+	console.log("rooms", rooms);
 	return (
 		<div className="max-w-6xl mx-auto">
 			<div className="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -72,7 +73,9 @@ export const PrivateRoomsList: React.FC<PrivateRoomsListProps> = ({
 												<div className="flex items-center text-sm text-gray-500">
 													<Users className="w-4 h-4 mr-1" />
 													<span>
-														{room.players?.length ||
+														{(room.players &&
+															room.players
+																.length) ||
 															0}{" "}
 														participants
 													</span>

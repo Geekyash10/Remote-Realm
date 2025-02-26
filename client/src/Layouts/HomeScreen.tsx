@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Client, Room } from "colyseus.js";
 import { PrivateRoomDialog } from "../components/PrivateRoomDialog";
 import { PrivateRoomsList } from "../components/PrivateRoomsList";
+import { Game } from "../Game/Game";
 import {
 	Building2,
 	Users,
@@ -19,6 +20,7 @@ interface RoomInfo {
 	roomName: string;
 	description: string;
 	isPrivate: boolean;
+	players?: string[];
 }
 
 const client = new Client("ws://localhost:3000");
@@ -34,6 +36,7 @@ function HomeScreen() {
 	const [joinState, setJoinState] = useState<JoinState>("initial");
 	const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 	const [username, setUsername] = useState<string>("");
+	const [character, setCharacter] = useState<string>("adam"); // Add character state
 	const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]);
 	const [error, setError] = useState<string>("");
 	// Private room creation state
@@ -45,29 +48,65 @@ function HomeScreen() {
 	const [showJoinDialog, setShowJoinDialog] = useState(false);
 	const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
 
+	// Client-side React component fix
 	useEffect(() => {
-		if (currentRoom) {
-			currentRoom.onMessage("update", (message) => {
-				console.log("Update received:", message);
-				setJoinedPlayers(message.players);
-			});
-			currentRoom.state.players.onAdd((player: any) => {
-				console.log("Player added to state:", player.name); // Add this
-				const playerNames = Array.from(currentRoom.state.players).map(
-					(p: any) => p.name
-				);
-				setJoinedPlayers(playerNames);
-			});
+		if (!currentRoom) return;
 
-			currentRoom.state.players.onRemove((player: any) => {
-				console.log("Player removed from state:", player.name); // Add this
-				const playerNames = Array.from(currentRoom.state.players).map(
-					(p: any) => p.name
-				);
-				setJoinedPlayers(playerNames);
-			});
-		}
-	}, [currentRoom]);
+		console.log("Setting up room event listeners");
+
+		// Handle player state changes
+		currentRoom.state.players.onAdd((player: any) => {
+			const playerNames = Array.from(
+				currentRoom.state.players.values()
+			).map((p: any) => p.name); // Ensure only names are stored
+			setJoinedPlayers(playerNames);
+		});
+
+		currentRoom.state.players.onRemove((player: any) => {
+			const playerNames = Array.from(
+				currentRoom.state.players.values()
+			).map((p: any) => p.name); // Ensure only names are stored
+			setJoinedPlayers(playerNames);
+		});
+
+		// Handle room messages
+		currentRoom.onMessage("update", (message) => {
+			const playerNames = message.players.map((p: any) => p.name); // Ensure only names are stored
+			setJoinedPlayers(playerNames);
+		});
+
+		currentRoom.onMessage("playerMoved", (message) => {
+			console.log("Player moved:", message);
+			// Handle player movement updates here
+		});
+
+		currentRoom.onMessage("roomInfo", (message) => {
+			console.log("Room Info:", message);
+			// Update state based on room info
+		});
+
+		currentRoom.onMessage("playerJoined", (message) => {
+			console.log("Player joined:", message);
+			setJoinedPlayers((prev) => [...prev, message.name]);
+		});
+
+		currentRoom.onMessage("playerLeft", (message) => {
+			console.log("Player left:", message);
+			setJoinedPlayers((prev) =>
+				prev.filter((name) => name !== message.name)
+			);
+		});
+
+		currentRoom.onMessage("chat", (message) => {
+			console.log("Chat message received:", message);
+			// Handle chat messages here
+		});
+
+		return () => {
+			console.log("Cleaning up room event listeners");
+			currentRoom.removeAllListeners();
+		};
+	}, [currentRoom]); // Only re-run if currentRoom changes
 
 	const goToHome = () => {
 		if (currentRoom) {
@@ -76,6 +115,7 @@ function HomeScreen() {
 		// Reset all states
 		setJoinState("initial");
 		setUsername("");
+		setCharacter("adam"); // Reset character state
 		setRoomName("");
 		setRoomDescription("");
 		setRoomPassword("");
@@ -97,14 +137,17 @@ function HomeScreen() {
 
 	const handleListPrivateRoomsClick = async () => {
 		try {
-			// This is a placeholder. In a real app, you'd implement a method to list private rooms
-			console.log("hello");
 			const rooms = await fetch(
 				"http://localhost:3000/privateRooms"
 			).then((res) => res.json());
-			console.log(rooms);
-			setPrivateRooms(rooms);
 
+			// Ensure players property is populated
+			const roomsWithPlayers = rooms.map((room: RoomInfo) => ({
+				...room,
+				players: room.players || [],
+			}));
+
+			setPrivateRooms(roomsWithPlayers);
 			setJoinState("list-private");
 		} catch (error) {
 			setError("Failed to fetch private rooms");
@@ -120,11 +163,13 @@ function HomeScreen() {
 		}
 
 		try {
+			// Ensure roomId is not reused from a previous private room
 			const room = await client.joinOrCreate("game", {
-				playerName: username,
+				playerName: username.trim(), // Ensure playerName is trimmed and passed
+				character,
 				isPrivate: false,
-				roomId: "public",
 			});
+
 			setCurrentRoom(room);
 			setJoinState("joined");
 			setError("");
@@ -146,7 +191,7 @@ function HomeScreen() {
 				roomName,
 				roomDescription,
 				roomPassword,
-				playerName: username,
+				playerName: username.trim(), // Ensure playerName is trimmed and passed
 				isPrivate: true,
 			});
 			setCurrentRoom(room);
@@ -164,12 +209,12 @@ function HomeScreen() {
 				return;
 			}
 			const room = await client.joinById(selectedRoom.roomId, {
-				playerName: username,
-				roomId: selectedRoom.roomId,
+				playerName: username.trim(), // Ensure playerName is trimmed and passed
 				roomPassword: password,
+				isPrivate: true,
 			});
 
-			setUsername(username);
+			setUsername(username.trim());
 			setCurrentRoom(room);
 			setJoinState("joined");
 			setShowJoinDialog(false);
@@ -215,7 +260,7 @@ function HomeScreen() {
 								Connect with colleagues in our virtual
 								workspace.
 							</p>
-							<div className="flex-col flex items-center  justify-center my-5 ">
+							<div className="flex-col flex items-center justify-center my-5">
 								<button
 									onClick={handleJoinPublicClick}
 									className="inline-flex items-center my-2 px-10 py-4 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
@@ -387,27 +432,19 @@ function HomeScreen() {
 							<h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
 								Private Rooms
 							</h2>
-							{joinState === "list-private" && (
-								<>
-									<PrivateRoomsList
-										rooms={privateRooms}
-										onJoinRoom={(room) =>
-											handleJoinPrivateRoom(room)
-										}
-									/>
-									{showJoinDialog && selectedRoom && (
-										<PrivateRoomDialog
-											onJoin={joinPrivateRoom}
-											onClose={() =>
-												setShowJoinDialog(false)
-											}
-											roomName={selectedRoom.roomName}
-											description={
-												selectedRoom.description
-											}
-										/>
-									)}
-								</>
+							<PrivateRoomsList
+								rooms={privateRooms}
+								onJoinRoom={(room: RoomInfo) =>
+									handleJoinPrivateRoom(room)
+								}
+							/>
+							{showJoinDialog && selectedRoom && (
+								<PrivateRoomDialog
+									onJoin={joinPrivateRoom}
+									onClose={() => setShowJoinDialog(false)}
+									roomName={selectedRoom.roomName}
+									description={selectedRoom.description}
+								/>
 							)}
 						</div>
 					)}
@@ -463,6 +500,12 @@ function HomeScreen() {
 									</div>
 								</div>
 							</div>
+							<Game
+								roomId={currentRoom?.roomId}
+								username={username}
+								room={currentRoom ?? undefined}
+								isPrivate={currentRoom?.state?.isPrivate} // Pass the isPrivate prop from state
+							/>
 							<ChatBox room={currentRoom} username={username} />
 						</div>
 					)}

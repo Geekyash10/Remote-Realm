@@ -6,6 +6,7 @@ interface Message {
 	sender?: string;
 	timestamp?: string;
 	type?: "system" | "chat";
+	name?: string; // Add the name property
 }
 
 interface ChatBoxProps {
@@ -39,6 +40,17 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 			room.onMessage("chat", (message) => handleMessage("chat", message));
 			room.onMessage("system", (message) =>
 				handleMessage("system", message)
+			);
+
+			room.onMessage("playerJoined", (message) =>
+				handleMessage("system", {
+					text: `${message.name} joined the room`,
+				})
+			);
+			room.onMessage("playerLeft", (message) =>
+				handleMessage("system", {
+					text: `${message.name} left the room`,
+				})
 			);
 
 			return () => {

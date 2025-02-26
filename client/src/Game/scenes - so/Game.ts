@@ -20,7 +20,7 @@ export default class Game extends Phaser.Scene {
 
     this.load.atlas('player', 'assets/character/adam.png', 'assets/character/adam.json')
 
-    this.cursors = this.input.keyboard.createCursorKeys()
+    this.cursors = this.input.keyboard!.createCursorKeys()
   }
 
   create() {
@@ -32,14 +32,17 @@ export default class Game extends Phaser.Scene {
     const obj2 = map.addTilesetImage('Modern_Office_Black_Shadow', 'tiles5')
     const obj3 = map.addTilesetImage('Classroom_and_library', 'tiles6')
 
-    const ground = [ground1, ground2, ground3, obj1]
-    const office_obj = [obj1, obj2, obj3]
+    const ground = [ground1, ground2, ground3, obj1].filter((obj): obj is Phaser.Tilemaps.Tileset => obj !== null)
+    const office_obj = [obj1, obj2, obj3].filter((obj): obj is Phaser.Tilemaps.Tileset => obj !== null)
 
     const groundLayer = map.createLayer('Ground', ground)
     map.createLayer('Obj_layer1', office_obj)
     map.createLayer('Obj_layer2', office_obj)
     map.createLayer('Obj_layer3', office_obj)
 
+    if (!groundLayer) {
+      throw new Error('Ground layer not found')
+    }
     groundLayer.setCollisionByProperty({ collides: true })
 
     const debugGraphics = this.add.graphics().setAlpha(0.7)
