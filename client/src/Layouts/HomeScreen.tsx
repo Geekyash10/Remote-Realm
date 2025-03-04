@@ -23,7 +23,7 @@ interface RoomInfo {
 	players?: string[];
 }
 
-const client = new Client("ws://localhost:3000");
+const client = new Client("ws://192.168.89.157:3000");
 
 type JoinState =
 	| "initial"
@@ -71,7 +71,9 @@ function HomeScreen() {
 
 		// Handle room messages
 		currentRoom.onMessage("update", (message) => {
-			const playerNames = message.players.map((p: any) => p.name); // Ensure only names are stored
+			const playerNames = message.players.map(
+				(p: any) => p.name
+			); // Ensure only names are stored
 			setJoinedPlayers(playerNames);
 		});
 
@@ -138,14 +140,16 @@ function HomeScreen() {
 	const handleListPrivateRoomsClick = async () => {
 		try {
 			const rooms = await fetch(
-				"http://localhost:3000/privateRooms"
+				"http://192.168.89.157:3000/privateRooms"
 			).then((res) => res.json());
 
 			// Ensure players property is populated
-			const roomsWithPlayers = rooms.map((room: RoomInfo) => ({
-				...room,
-				players: room.players || [],
-			}));
+			const roomsWithPlayers = rooms.map(
+				(room: RoomInfo) => ({
+					...room,
+					players: room.players || [],
+				})
+			);
 
 			setPrivateRooms(roomsWithPlayers);
 			setJoinState("list-private");
@@ -198,7 +202,9 @@ function HomeScreen() {
 			setJoinState("joined");
 			setError("");
 		} catch (error) {
-			setError("Failed to create private room. Please try again.");
+			setError(
+				"Failed to create private room. Please try again."
+			);
 		}
 	};
 
@@ -208,11 +214,14 @@ function HomeScreen() {
 				setError("No room selected.");
 				return;
 			}
-			const room = await client.joinById(selectedRoom.roomId, {
-				playerName: username.trim(), // Ensure playerName is trimmed and passed
-				roomPassword: password,
-				isPrivate: true,
-			});
+			const room = await client.joinById(
+				selectedRoom.roomId,
+				{
+					playerName: username.trim(), // Ensure playerName is trimmed and passed
+					roomPassword: password,
+					isPrivate: true,
+				}
+			);
 
 			setUsername(username.trim());
 			setCurrentRoom(room);
@@ -220,7 +229,9 @@ function HomeScreen() {
 			setShowJoinDialog(false);
 			setError("");
 		} catch (error) {
-			setError("Failed to join private room. Check your credentials.");
+			setError(
+				"Failed to join private room. Check your credentials."
+			);
 		}
 	};
 
@@ -243,7 +254,9 @@ function HomeScreen() {
 							className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors duration-200 flex items-center gap-2"
 						>
 							<Home className="w-6 h-6" />
-							<span className="text-sm font-medium">Home</span>
+							<span className="text-sm font-medium">
+								Home
+							</span>
 						</button>
 					</div>
 				)}
@@ -254,35 +267,50 @@ function HomeScreen() {
 								<Building2 className="w-12 h-12 text-blue-600" />
 							</div>
 							<h1 className="text-4xl font-bold text-gray-900 mb-4">
-								Virtual Office Workspace
+								Virtual Office
+								Workspace
 							</h1>
 							<p className="text-lg text-gray-600 mb-8">
-								Connect with colleagues in our virtual
+								Connect with
+								colleagues in
+								our virtual
 								workspace.
 							</p>
 							<div className="flex-col flex items-center justify-center my-5">
 								<button
-									onClick={handleJoinPublicClick}
+									onClick={
+										handleJoinPublicClick
+									}
 									className="inline-flex items-center my-2 px-10 py-4 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
 								>
 									<Users className="w-5 h-5 mr-2" />
-									Join Public Room
+									Join
+									Public
+									Room
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</button>
 								<button
-									onClick={handleCreatePrivateRoomClick}
+									onClick={
+										handleCreatePrivateRoomClick
+									}
 									className="inline-flex items-center px-7 py-4 my-2 text-lg font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200"
 								>
 									<PlusCircle className="w-5 h-5 mr-2" />
-									Create Private Room
+									Create
+									Private
+									Room
 									<Lock className="w-5 h-5 ml-2" />
 								</button>
 								<button
-									onClick={handleListPrivateRoomsClick}
+									onClick={
+										handleListPrivateRoomsClick
+									}
 									className="inline-flex items-center my-2 px-10 py-4 text-lg font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors duration-200"
 								>
 									<Lock className="w-5 h-5 mr-2" />
-									Join Private Room
+									Join
+									Private
+									Room
 									<ArrowRight className="w-5 h-5 ml-2" />
 								</button>
 							</div>
@@ -294,21 +322,36 @@ function HomeScreen() {
 							<h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
 								Enter Your Name
 							</h2>
-							<form onSubmit={joinPublicRoom}>
+							<form
+								onSubmit={
+									joinPublicRoom
+								}
+							>
 								<div className="mb-6">
 									<label
 										htmlFor="username"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Your Name
+										Your
+										Name
 									</label>
 									<input
 										type="text"
 										id="username"
-										value={username}
-										onChange={(e) => {
-											setUsername(e.target.value);
-											setError("");
+										value={
+											username
+										}
+										onChange={(
+											e
+										) => {
+											setUsername(
+												e
+													.target
+													.value
+											);
+											setError(
+												""
+											);
 										}}
 										className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
 											error
@@ -320,7 +363,9 @@ function HomeScreen() {
 									/>
 									{error && (
 										<p className="mt-2 text-sm text-red-600">
-											{error}
+											{
+												error
+											}
 										</p>
 									)}
 								</div>
@@ -328,7 +373,8 @@ function HomeScreen() {
 									type="submit"
 									className="w-full px-6 py-3 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200"
 								>
-									Join Room
+									Join
+									Room
 								</button>
 							</form>
 						</div>
@@ -337,22 +383,38 @@ function HomeScreen() {
 					{joinState === "create-private" && (
 						<div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
 							<h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-								Create Private Room
+								Create Private
+								Room
 							</h2>
-							<form onSubmit={createPrivateRoom}>
+							<form
+								onSubmit={
+									createPrivateRoom
+								}
+							>
 								<div className="mb-4">
 									<label
 										htmlFor="username"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Your Name
+										Your
+										Name
 									</label>
 									<input
 										type="text"
-										value={username}
-										onChange={(e) => {
-											setUsername(e.target.value);
-											setError("");
+										value={
+											username
+										}
+										onChange={(
+											e
+										) => {
+											setUsername(
+												e
+													.target
+													.value
+											);
+											setError(
+												""
+											);
 										}}
 										className="w-full px-4 py-2 border rounded-lg"
 										placeholder="Enter your name"
@@ -364,13 +426,22 @@ function HomeScreen() {
 										htmlFor="roomName"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Room Name
+										Room
+										Name
 									</label>
 									<input
 										type="text"
-										value={roomName}
-										onChange={(e) =>
-											setRoomName(e.target.value)
+										value={
+											roomName
+										}
+										onChange={(
+											e
+										) =>
+											setRoomName(
+												e
+													.target
+													.value
+											)
 										}
 										className="w-full px-4 py-2 border rounded-lg"
 										placeholder="Enter room name"
@@ -382,13 +453,22 @@ function HomeScreen() {
 										htmlFor="roomDescription"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Room Description
+										Room
+										Description
 									</label>
 									<input
 										type="text"
-										value={roomDescription}
-										onChange={(e) =>
-											setRoomDescription(e.target.value)
+										value={
+											roomDescription
+										}
+										onChange={(
+											e
+										) =>
+											setRoomDescription(
+												e
+													.target
+													.value
+											)
 										}
 										className="w-full px-4 py-2 border rounded-lg"
 										placeholder="Optional room description"
@@ -399,13 +479,22 @@ function HomeScreen() {
 										htmlFor="roomPassword"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Room Password
+										Room
+										Password
 									</label>
 									<input
 										type="password"
-										value={roomPassword}
-										onChange={(e) =>
-											setRoomPassword(e.target.value)
+										value={
+											roomPassword
+										}
+										onChange={(
+											e
+										) =>
+											setRoomPassword(
+												e
+													.target
+													.value
+											)
 										}
 										className="w-full px-4 py-2 border rounded-lg"
 										placeholder="Enter room password"
@@ -414,14 +503,18 @@ function HomeScreen() {
 								</div>
 								{error && (
 									<p className="mt-2 text-sm text-red-600 mb-4">
-										{error}
+										{
+											error
+										}
 									</p>
 								)}
 								<button
 									type="submit"
 									className="w-full px-6 py-3 text-lg font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors duration-200"
 								>
-									Create Private Room
+									Create
+									Private
+									Room
 								</button>
 							</form>
 						</div>
@@ -433,19 +526,36 @@ function HomeScreen() {
 								Private Rooms
 							</h2>
 							<PrivateRoomsList
-								rooms={privateRooms}
-								onJoinRoom={(room: RoomInfo) =>
-									handleJoinPrivateRoom(room)
+								rooms={
+									privateRooms
+								}
+								onJoinRoom={(
+									room: RoomInfo
+								) =>
+									handleJoinPrivateRoom(
+										room
+									)
 								}
 							/>
-							{showJoinDialog && selectedRoom && (
-								<PrivateRoomDialog
-									onJoin={joinPrivateRoom}
-									onClose={() => setShowJoinDialog(false)}
-									roomName={selectedRoom.roomName}
-									description={selectedRoom.description}
-								/>
-							)}
+							{showJoinDialog &&
+								selectedRoom && (
+									<PrivateRoomDialog
+										onJoin={
+											joinPrivateRoom
+										}
+										onClose={() =>
+											setShowJoinDialog(
+												false
+											)
+										}
+										roomName={
+											selectedRoom.roomName
+										}
+										description={
+											selectedRoom.description
+										}
+									/>
+								)}
 						</div>
 					)}
 
@@ -457,19 +567,28 @@ function HomeScreen() {
 										<Users className="w-6 h-6 text-blue-600" />
 										<div>
 											<h2 className="text-xl font-semibold text-gray-900">
-												Virtual Office Room
+												Virtual
+												Office
+												Room
 											</h2>
 											<p className="text-sm text-gray-600">
-												Room ID: {currentRoom?.roomId}
+												Room
+												ID:{" "}
+												{
+													currentRoom?.roomId
+												}
 											</p>
 										</div>
 									</div>
 									<button
-										onClick={leaveRoom}
+										onClick={
+											leaveRoom
+										}
 										className="flex items-center px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
 									>
 										<LogOut className="w-4 h-4 mr-2" />
-										Leave Room
+										Leave
+										Room
 									</button>
 								</div>
 							</div>
@@ -477,36 +596,70 @@ function HomeScreen() {
 							<div className="p-6">
 								<div className="mb-4">
 									<h3 className="text-lg font-medium text-gray-900 mb-3">
-										Participants ({joinedPlayers.length})
+										Participants
+										(
+										{
+											joinedPlayers.length
+										}
+										)
 									</h3>
 									<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-										{joinedPlayers.map((player, index) => (
-											<div
-												key={index}
-												className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg"
-											>
-												<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-													<span className="text-blue-600 font-medium">
-														{player
-															.charAt(0)
-															.toUpperCase()}
+										{joinedPlayers.map(
+											(
+												player,
+												index
+											) => (
+												<div
+													key={
+														index
+													}
+													className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg"
+												>
+													<div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+														<span className="text-blue-600 font-medium">
+															{player
+																.charAt(
+																	0
+																)
+																.toUpperCase()}
+														</span>
+													</div>
+													<span className="font-medium text-gray-700">
+														{
+															player
+														}
 													</span>
 												</div>
-												<span className="font-medium text-gray-700">
-													{player}
-												</span>
-											</div>
-										))}
+											)
+										)}
 									</div>
 								</div>
 							</div>
 							<Game
-								roomId={currentRoom?.roomId}
-								username={username}
-								room={currentRoom ?? undefined}
-								isPrivate={currentRoom?.state?.isPrivate} // Pass the isPrivate prop from state
+								roomId={
+									currentRoom?.roomId
+								}
+								username={
+									username
+								}
+								room={
+									currentRoom ??
+									undefined
+								}
+								isPrivate={
+									currentRoom
+										?.state
+										?.isPrivate
+								} // Pass the isPrivate prop from state
 							/>
-							<ChatBox room={currentRoom} username={username} />
+							<ChatBox
+								room={
+									currentRoom
+								}
+								username={
+									username
+								}
+							/>
 						</div>
 					)}
 				</div>
