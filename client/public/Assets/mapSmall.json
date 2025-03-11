@@ -77,7 +77,6 @@
             1336, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1300, 1338],
          "height":30,
          "id":4,
-         "locked":true,
          "name":"walls",
          "opacity":1,
          "type":"tilelayer",
@@ -655,7 +654,7 @@
  "nextobjectid":43,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.2",
+ "tiledversion":"1.11.1",
  "tileheight":32,
  "tilesets":[
         {
