@@ -16,7 +16,8 @@ import { createCharacterAnims } from "../Character/CharacterAnims";
 import "../Character/Char";
 
 // Import map JSON
-import mapSmall from "/Assets/mapSmall.json?url";
+// import clgMap from "/Assets/clgMap.json?url";
+import clgMap from "/Assets/clgMap.json?url";
 
 export class GameScene extends Phaser.Scene {
 	private map!: Phaser.Tilemaps.Tilemap;
@@ -52,7 +53,7 @@ export class GameScene extends Phaser.Scene {
 	async connectToRoom() {
 		try {
 			const client = new Colyseus.Client(
-				"ws://192.168.89.157:3000"
+				"ws://localhost:3000"
 			);
 			this.client = client;
 
@@ -194,7 +195,7 @@ export class GameScene extends Phaser.Scene {
 
 	preload() {
 		// Load the tilemap JSON
-		this.load.tilemapTiledJSON("mapSmall", mapSmall);
+		this.load.tilemapTiledJSON("clgMap", clgMap);
 
 		// Load tileset images
 		this.load.image("basement", Basement);
@@ -218,7 +219,7 @@ export class GameScene extends Phaser.Scene {
 
 	createMap() {
 		// Create tilemap from JSON
-		this.map = this.make.tilemap({ key: "mapSmall" });
+		this.map = this.make.tilemap({ key: "clgMap" });
 
 		// Add tilesets from JSON
 		const basementTileset = this.map.addTilesetImage(
@@ -270,10 +271,12 @@ export class GameScene extends Phaser.Scene {
 			classroomTileset,
 		].filter((ts) => ts !== null);
 		const groundLayer1 = this.map.createLayer("Floor", ground);
-		const groundLayer2 = this.map.createLayer("walls", ground);
-		const groundLayer3 = this.map.createLayer("walls2", ground);
-		this.map.createLayer("chairs", obj);
-		this.map.createLayer("tables", obj);
+		const groundLayer2 = this.map.createLayer("Wall1", ground);
+		const groundLayer3 = this.map.createLayer("Wall2", ground);
+		
+		const chairlayer=this.map.createLayer("Chair", obj);
+		const computerlayer=this.map.createLayer("Comp", obj);
+
 		// console.log(groundLayer)
 
 		// console.log(groundLayer1);
@@ -286,6 +289,11 @@ export class GameScene extends Phaser.Scene {
 			groundLayer2.setCollisionByProperty({ collides: true });
 		if (groundLayer3)
 			groundLayer3.setCollisionByProperty({ collides: true });
+		if (chairlayer)
+			chairlayer.setCollisionByProperty({ collides: true });
+		if(computerlayer)
+			computerlayer.setCollisionByProperty({ collides: true });
+
 		// console.log(groundLayer)
 		// console.log(groundLayer1);
 		// console.log(groundLayer2);
