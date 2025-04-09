@@ -1,44 +1,43 @@
-import { Room, Client } from "colyseus"; // Import the Room and Client classes from the colyseus package
-import { Schema, type, ArraySchema, MapSchema } from "@colyseus/schema"; // Import the Schema, type, and ArraySchema classes from the @colyseus/schema package
+import { Room, Client } from "colyseus";
+import { Schema, type, MapSchema } from "@colyseus/schema";
 import { RoomModel } from "../models/roomModel";
 
 
 class Player extends Schema {
-    @type("string") sessionId: string; // Define a sessionId property of type string
-    @type("string") name: string; // Define a name property of type string
+    @type("string") sessionId: string;
+    @type("string") name: string;
     @type("number") x: number = 705;
     @type("number") y: number = 500;
     @type("string") animation: string = "player_idle_down";
-    @type("string") character: string; // Add character property
+    @type("string") character: string;
 
     constructor(sessionId: string, name: string, character: string) {
         super();
         this.sessionId = sessionId;
         this.name = name;
         this.character = character;
-    } // Define a constructor that takes a sessionId and name as arguments and assigns them to the sessionId and name properties
+    }
 }
 
 class RoomState extends Schema {
     @type({ map: Player }) players = new MapSchema<Player>();
     @type("string") roomName: string;
     @type("string") roomDescription: string;
-    @type("string") roomPassword: string; // optional
+    @type("string") roomPassword: string;
     @type("boolean") isPrivate: boolean;
 
     constructor(roomName: string, roomDescription: string, roomPassword: string, isPrivate: boolean) {
         super();
         this.roomName = roomName;
         this.roomDescription = roomDescription;
-        this.roomPassword = roomPassword; // optional
+        this.roomPassword = roomPassword;
         this.isPrivate = isPrivate;
-        
     }
+}
 
-} // Define a RoomState class that extends Schema and has a players property of type ArraySchema<Player>
-
-// In MyRoom.ts
 export class MyRoom extends Room<RoomState> {
+    
+
     async onCreate(options: any) {
         // Set room type
         const isPrivate = options.isPrivate || false;
@@ -56,22 +55,32 @@ export class MyRoom extends Room<RoomState> {
             isPrivate
         ));
 
-        // Handle player position updates with improved performance
+        // Initialize whiteboard
+        
+
+        // Handle player position updates
         this.onMessage("updatePlayer", (client, message) => {
             const player = this.state.players.get(client.sessionId);
             if (player) {
                 player.x = message.x;
                 player.y = message.y;
                 player.animation = message.animation;
-                
-                // Broadcast position update to all clients except sender
-                // this.broadcast("playerMoved", {
-                //     sessionId: client.sessionId,
-                //     x: message.x,
-                //     y: message.y,
-                //     animation: message.animation
-                // }, { except: client });
             }
+        });
+
+        this.onMessage("media-state-change", (client, message) => {
+            const { videoEnabled, audioEnabled } = message;
+
+            // Broadcast to all other clients
+            this.broadcast(
+                "media-state-change",
+                {
+                    peerId: client.sessionId,
+                    videoEnabled,
+                    audioEnabled,
+                },
+                { except: client }
+            );
         });
 
         // Handle chat messages
@@ -83,9 +92,7 @@ export class MyRoom extends Room<RoomState> {
             });
         });
 
-        this.onMessage("chat", (client, message) => {
-            this.broadcast("chat", message);
-        });
+        // Handle player movement broadcasts
         this.onMessage("playerMoved", (client, message) => {
             const player = this.state.players.get(client.sessionId);
             if (player) {
@@ -93,7 +100,7 @@ export class MyRoom extends Room<RoomState> {
                 player.y = message.y;
                 player.animation = message.animation;
         
-                // Now broadcast the movement update to all clients
+                // Broadcast movement to all clients except sender
                 this.broadcast("playerMoved", {
                     sessionId: client.sessionId,
                     x: player.x,
@@ -103,12 +110,44 @@ export class MyRoom extends Room<RoomState> {
             }
         });
         
-
+        // Handle system messages
         this.onMessage("system", (client, message) => {
             this.broadcast("system", message);
         });
 
-        if (options.isPrivate) {
+        // Handle player joined notifications
+        this.onMessage("player-joined", (client, message) => {
+            // Broadcast to all clients except the sender
+            this.broadcast("player-joined", { id: client.sessionId }, { except: client });
+        });
+
+        // Handle WebRTC signaling
+        this.onMessage("webrtc-signal", (client, message) => {
+            const { to, signal } = message;
+            
+            if (!to || !signal) {
+                console.warn("Invalid WebRTC signal message:", message);
+                return;
+            }
+
+            // Forward the signal to the target client
+            const targetClient = this.clients.find(c => c.sessionId === to);
+            if (targetClient) {
+                targetClient.send("webrtc-signal", { 
+                    from: client.sessionId, 
+                    signal 
+                });
+            } else {
+                console.warn(`Target client ${to} not found for signal from ${client.sessionId}`);
+            }
+        });
+
+        // Handle whiteboard updates
+       
+        // Handle whiteboard clear
+       
+        // Store private room in database
+        if (isPrivate) {
             try {
                 await new RoomModel({
                     roomId: this.roomId,
@@ -126,64 +165,68 @@ export class MyRoom extends Room<RoomState> {
     }
 
     async onJoin(client: Client, options: any) {
-        // Validate room access
+        console.log("nfcndjnj",options);
+        console.log(`Player ${options.playerName || "Guest"} joining with ID ${client.sessionId}`);
 
         console.log(this.state.isPrivate);
         console.log(options.isPrivate);
       
 
-        const playerName = options.playerName || "Guest"; // Ensure playerName is provided
+        const playerName = options.playerName || "Guest";
 
-        console.log(`Player ${playerName} joining with ID ${client.sessionId}`);
-
-        // Check if the player already exists in the state
+        // Check if the player already exists
         if (this.state.players.has(client.sessionId)) {
             console.warn(`Player with session ID ${client.sessionId} already exists`);
             return;
         }
-
-        // Create new player with position based on room type
+        
+        // Create new player
         const player = new Player(
             client.sessionId, 
-            playerName,
+            playerName || "Guest",
             options.character || 'adam'
         );
 
-        // Different spawn areas for public and private rooms
+        // Set spawn position based on room type
         if (this.state.isPrivate) {
-            // Private room spawn area
             player.x = 705 + (Math.random() * 100);
             player.y = 500 + (Math.random() * 100);
         } else {
-            // Public room spawn area - wider area
             player.x = 705 + (Math.random() * 300) - 150;
             player.y = 500 + (Math.random() * 300) - 150;
         }
         
+        // Add player to room state
         this.state.players.set(client.sessionId, player);
 
-        // Notify other clients
+        // Notify existing clients about the new player
         this.broadcast("playerJoined", {
             sessionId: client.sessionId,
             name: playerName,
-            character: options.character || 'adam',
+            character: player.character,
             x: player.x,
             y: player.y,
             animation: player.animation
         }, { except: client });
 
-        // Send room info to the joining client
+        // Send room info to new client
         client.send("roomInfo", {
             isPrivate: this.state.isPrivate,
             currentPlayers: this.clients.length
         });
 
-        // Update the room model in the database
+        // Send current whiteboard state to the new client
+     
+
+        // Notify all clients to establish WebRTC connections
+        this.broadcast("player-joined", { id: client.sessionId });
+
+        // Update database for private rooms
         if (this.state.isPrivate) {
             try {
                 await RoomModel.findOneAndUpdate(
                     { roomId: this.roomId },
-                    { $push: { players: { sessionId: client.sessionId, name: playerName } } }
+                    { $push: { players: { sessionId: client.sessionId, name: player.name } } }
                 );
             } catch (error) {
                 console.error("Error updating room model:", error);
@@ -191,6 +234,7 @@ export class MyRoom extends Room<RoomState> {
         }
     }
 
+    
     async onLeave(client: Client) {
         const player = this.state.players.get(client.sessionId);
         
@@ -202,6 +246,9 @@ export class MyRoom extends Room<RoomState> {
                 name: player.name
             });
 
+            // Notify all clients to remove the video element of the leaving player
+            this.broadcast("removeVideo", { sessionId: client.sessionId });
+
             this.broadcast("update", {
                 players: Array.from(this.state.players.values()).map(p => ({
                     sessionId: p.sessionId,
@@ -212,6 +259,7 @@ export class MyRoom extends Room<RoomState> {
                     character: p.character
                 }))
             });
+
 
             // Update the room model in the database
             if (this.state.isPrivate) {

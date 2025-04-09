@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import * as Colyseus from "colyseus.js";
+import { WebRTCManager } from "../Utils/WebRTCManager";
 
 // Import tile images
 import Basement from "/Assets/Basement.png";
@@ -14,24 +15,23 @@ import player_photo from "/Assets/character/adam.png";
 import player_json from "/Assets/character/adam.json?url";
 import { createCharacterAnims } from "../Character/CharacterAnims";
 import "../Character/Char";
+// import Peer, { MediaConnection } from 'peerjs';
 
 // Import map JSON
-// import clgMap from "/Assets/clgMap.json?url";
 import clgMap from "/Assets/clgMap.json?url";
 
 export class GameScene extends Phaser.Scene {
 	private map!: Phaser.Tilemaps.Tilemap;
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private player!: Phaser.Physics.Arcade.Sprite;
-	private playerDirection!: string;
 	private client!: Colyseus.Client;
 	private roomId?: string;
 	private username?: string;
-	private isPrivate?: boolean; // Add isPrivate property
-	private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> =
-		new Map();
+	private isPrivate?: boolean;
+	private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 	private currentRoom?: Colyseus.Room;
 	private listenersInitialized: boolean = false;
+	private webRTCManager!: WebRTCManager;
 
 	constructor() {
 		super("GameScene");
@@ -46,15 +46,25 @@ export class GameScene extends Phaser.Scene {
 		console.log("GameScene init with data:", data);
 		this.roomId = data.roomId;
 		this.username = data.username;
-		this.currentRoom = data.room; // Set the room object
-		this.isPrivate = data.isPrivate; // Set the isPrivate property
+		this.currentRoom = data.room;
+		this.isPrivate = data.isPrivate;
+
+		if (this.currentRoom) {
+			this.webRTCManager = new WebRTCManager(
+				this.currentRoom.sessionId,
+				[
+					{ urls: "stun:stun.l.google.com:19302" },
+					{ urls: "stun:stun1.l.google.com:19302" },
+					{ urls: "stun:stun2.l.google.com:19302" },
+				],
+				this.currentRoom // Pass the room as the third parameter
+			);
+		}
 	}
 
 	async connectToRoom() {
 		try {
-			const client = new Colyseus.Client(
-				"ws://localhost:3000"
-			);
+			const client = new Colyseus.Client("ws://localhost:3000");
 			this.client = client;
 
 			console.log(
@@ -69,8 +79,17 @@ export class GameScene extends Phaser.Scene {
 					"Already connected to a room:",
 					this.currentRoom.sessionId
 				);
-				// Don't return here, just setup listeners if not already set up
 				this.setupRoomListeners(this.currentRoom);
+
+				// Initialize WebRTCManager
+				this.webRTCManager = new WebRTCManager(this.currentRoom.sessionId, [
+					{ urls: 'stun:stun.l.google.com:19302' },
+					{ urls: 'stun:stun1.l.google.com:19302' },
+					{ urls: 'stun:stun2.l.google.com:19302' },
+				]);
+				await this.webRTCManager.initialize();
+				await this.webRTCManager.setupLocalStream();
+
 				return this.currentRoom;
 			}
 
@@ -80,7 +99,6 @@ export class GameScene extends Phaser.Scene {
 					username: this.username,
 				});
 			} else {
-				console.log(this.roomId);
 				room = await client.joinOrCreate(
 					this.roomId ?? "game",
 					{ username: this.username }
@@ -89,7 +107,17 @@ export class GameScene extends Phaser.Scene {
 
 			this.currentRoom = room;
 			this.setupRoomListeners(room);
-			console.log(`Connected to room:`, room.sessionId);
+			console.log(`Connected to room: ${room.sessionId}`);
+
+			// Initialize WebRTCManager
+			this.webRTCManager = new WebRTCManager(room.sessionId, [
+				{ urls: 'stun:stun.l.google.com:19302' },
+				{ urls: 'stun:stun1.l.google.com:19302' },
+				{ urls: 'stun:stun2.l.google.com:19302' },
+			]);
+			await this.webRTCManager.initialize();
+			await this.webRTCManager.setupLocalStream();
+
 			return room;
 		} catch (error) {
 			console.error("Error connecting to room:", error);
@@ -102,6 +130,7 @@ export class GameScene extends Phaser.Scene {
 			console.warn("Listeners already initialized");
 			return;
 		}
+
 		// When a new player joins
 		room.state.players.onAdd((player: any, sessionId: string) => {
 			console.log("Player joined:", sessionId, player);
@@ -141,6 +170,11 @@ export class GameScene extends Phaser.Scene {
 					}
 				}
 			});
+
+			// Delay peer connection attempt to allow the player to fully join
+			setTimeout(() => {
+				this.webRTCManager.initiatePeerConnection(sessionId);
+			}, 2000);
 		});
 
 		// When a player leaves
@@ -155,9 +189,9 @@ export class GameScene extends Phaser.Scene {
 			}
 		);
 
-		// Send local player position updates more frequently
+		// Send local player position updates
 		this.time.addEvent({
-			delay: 33, // Increase update frequency to ~30fps
+			delay: 33, // ~30fps
 			callback: () => {
 				if (this.player && room) {
 					const currentAnimation =
@@ -190,6 +224,31 @@ export class GameScene extends Phaser.Scene {
 			}
 		});
 
+		// Listen for WebRTC signaling messages
+		room.onMessage("webrtc-signal", (message) => {
+			const { from, signal } = message;
+			console.log(`Received signal from ${from}`);
+		});
+
+		// Listen for stopVideo messages
+		room.onMessage("stopVideo", (message) => {
+			const { sessionId } = message;
+			console.log(`Stopping video for session ID: ${sessionId}`);
+			if (this.webRTCManager) {
+				this.webRTCManager.removeVideoElement(sessionId);
+			}
+		});
+
+		 // Listen for removeVideo messages
+		room.onMessage("removeVideo", (message) => {
+			const { sessionId } = message;
+			console.log(`Removing video for session ID: ${sessionId}`);
+			if (this.webRTCManager) {
+				this.webRTCManager.removeVideoElement(sessionId);
+			}
+		});
+
+		// Mark listeners as initialized
 		this.listenersInitialized = true;
 	}
 
@@ -252,9 +311,7 @@ export class GameScene extends Phaser.Scene {
 			"classroom-library"
 		);
 
-		// Add all tilesets to an array
-		// console.log(this.map)
-
+		// Log layer names
 		const layerNames = this.map.layers.map((layer) => layer.name);
 		console.log(layerNames);
 
@@ -274,14 +331,8 @@ export class GameScene extends Phaser.Scene {
 		const groundLayer2 = this.map.createLayer("Wall1", ground);
 		const groundLayer3 = this.map.createLayer("Wall2", ground);
 		
-		const chairlayer=this.map.createLayer("Chair", obj);
-		const computerlayer=this.map.createLayer("Comp", obj);
-
-		// console.log(groundLayer)
-
-		// console.log(groundLayer1);
-		// console.log(groundLayer2);
-		// console.log(groundLayer3);
+		const chairlayer = this.map.createLayer("Chair", obj);
+		const computerlayer = this.map.createLayer("Comp", obj);
 
 		if (groundLayer1)
 			groundLayer1.setCollisionByProperty({ collides: true });
@@ -294,11 +345,7 @@ export class GameScene extends Phaser.Scene {
 		if(computerlayer)
 			computerlayer.setCollisionByProperty({ collides: true });
 
-		// console.log(groundLayer)
-		// console.log(groundLayer1);
-		// console.log(groundLayer2);
-		// console.log(groundLayer3);
-
+		// Debug collision graphics
 		const debugGraphics = this.add.graphics().setAlpha(0.7);
 		if (groundLayer1) {
 			groundLayer1.renderDebug(debugGraphics, {
@@ -352,10 +399,14 @@ export class GameScene extends Phaser.Scene {
 			});
 		}
 
+		// Create player sprite
 		this.player = this.add.player(705, 500, "player");
 
+		// Set up camera
 		this.cameras.main.zoom = 1.5;
 		this.cameras.main.startFollow(this.player);
+		
+		// Add colliders
 		if (groundLayer1)
 			this.physics.add.collider(this.player, groundLayer1);
 		if (groundLayer2)
@@ -363,7 +414,18 @@ export class GameScene extends Phaser.Scene {
 		if (groundLayer3)
 			this.physics.add.collider(this.player, groundLayer3);
 	}
+	
+	shutdown() {
+		if (this.webRTCManager) {
+			this.webRTCManager.shutdown();
+		}
 
+		// Notify the server that the player is leaving
+		if (this.currentRoom) {
+			this.currentRoom.leave();
+		}
+	}
+	
 	update(_t: number, _dt: number) {
 		if (this.player) {
 			this.player.update(this.cursors);

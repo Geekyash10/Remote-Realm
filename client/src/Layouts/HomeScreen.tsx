@@ -226,7 +226,46 @@ function HomeScreen() {
 
 	const leaveRoom = async () => {
 		if (currentRoom) {
+			// Notify the server and leave the room
 			await currentRoom.leave();
+
+			// Stop all media tracks (camera and microphone)
+			const mediaStream = await navigator.mediaDevices.getUserMedia({
+				video: true,
+				audio: true,
+			});
+			mediaStream.getTracks().forEach((track) => track.stop());
+
+			// Remove all video elements
+			const videoElements = document.querySelectorAll("video");
+			videoElements.forEach((video) => {
+				video.srcObject = null;
+				video.remove();
+			});
+
+			// Remove video container and extra buttons
+			const divElements = document.querySelectorAll("div");
+			divElements.forEach((div) => {
+				if (
+					div.classList.contains("video-container") ||
+					div.classList.contains("view-toggle-container")
+				) {
+					div.remove();
+				}
+			});
+
+			const extraButtons = document.querySelectorAll(
+				".video-control-btn, .audio-control-btn"
+			);
+			extraButtons.forEach((button) => button.remove());
+
+			// Remove video styles
+			const videoStyles = document.getElementById("video-styles");
+			if (videoStyles) {
+				videoStyles.remove();
+			}
+
+			// Reset state
 			setCurrentRoom(null);
 			setJoinState("initial");
 			setUsername("");
