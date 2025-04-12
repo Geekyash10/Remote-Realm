@@ -1,7 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Phaser from "phaser";
 import { GameScene } from "./Scenes/GameScene";
 import { Room } from "colyseus.js";
+import WhiteboardComponent from "../components/WhiteBoardComponent";
+import TaskManager from "../components/TaskComponent";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 interface GameProps {
 	width?: number;
@@ -20,6 +24,7 @@ export const Game: React.FC<GameProps> = ({
 	room,
 	isPrivate,
 }) => {
+	const [taskManagerVisible, setTaskManagerVisible] = useState(false);
 	useEffect(() => {
 		const config: Phaser.Types.Core.GameConfig = {
 			type: Phaser.AUTO,
@@ -53,20 +58,52 @@ export const Game: React.FC<GameProps> = ({
 		const game = new Phaser.Game(config);
 
 		game.scene.start("GameScene", { roomId, username, room, isPrivate });
+		const handleToggleTaskManager = (event: any) => {
+			setTaskManagerVisible(event.detail.open);
+		};
+
+		window.addEventListener("toggleTaskManager", handleToggleTaskManager);
 
 		return () => {
 			game.destroy(true);
+			window.removeEventListener(
+				"toggleTaskManager",
+				handleToggleTaskManager
+			);
 		};
 	}, [width, height, roomId, username, room, isPrivate]);
 
 	return (
-		<div
-			id="game-container"
-			style={{
-				width: "800px",
-				height: "600px",
-				margin: "0 auto",
-			}}
-		/>
+		<>
+			<ToastContainer
+				position="top-right"
+				autoClose={5000}
+				hideProgressBar={false}
+				newestOnTop
+				closeOnClick
+				rtl={false}
+				pauseOnFocusLoss
+				draggable
+				pauseOnHover
+				theme="light"
+			/>
+			<div
+				id="game-container"
+				style={{
+					width: "800px",
+					height: "600px",
+					margin: "0 auto",
+				}}
+			/>
+			<WhiteboardComponent roomId={roomId} isPrivate={isPrivate} />
+			{username && (
+				<TaskManager
+					room={room}
+					username={username}
+					isVisible={taskManagerVisible}
+					onClose={() => setTaskManagerVisible(false)}
+				/>
+			)}
+		</>
 	);
 };

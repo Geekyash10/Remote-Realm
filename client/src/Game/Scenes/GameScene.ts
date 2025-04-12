@@ -32,6 +32,8 @@ export class GameScene extends Phaser.Scene {
 	private currentRoom?: Colyseus.Room;
 	private listenersInitialized: boolean = false;
 	private webRTCManager!: WebRTCManager;
+	private tKey!: Phaser.Input.Keyboard.Key;
+	private taskManagerOpen: boolean = false;
 
 	constructor() {
 		super("GameScene");
@@ -60,6 +62,19 @@ export class GameScene extends Phaser.Scene {
 				this.currentRoom // Pass the room as the third parameter
 			);
 		}
+		this.tKey = this.input.keyboard!.addKey(
+			Phaser.Input.Keyboard.KeyCodes.T
+		);
+		this.tKey.on("down", () => {
+			// Toggle task manager state
+			this.taskManagerOpen = !this.taskManagerOpen;
+
+			// Emit a custom event that can be captured by React
+			const evt = new CustomEvent("toggleTaskManager", {
+				detail: { open: this.taskManagerOpen },
+			});
+			window.dispatchEvent(evt);
+		});
 	}
 
 	async connectToRoom() {
@@ -82,11 +97,14 @@ export class GameScene extends Phaser.Scene {
 				this.setupRoomListeners(this.currentRoom);
 
 				// Initialize WebRTCManager
-				this.webRTCManager = new WebRTCManager(this.currentRoom.sessionId, [
-					{ urls: 'stun:stun.l.google.com:19302' },
-					{ urls: 'stun:stun1.l.google.com:19302' },
-					{ urls: 'stun:stun2.l.google.com:19302' },
-				]);
+				this.webRTCManager = new WebRTCManager(
+					this.currentRoom.sessionId,
+					[
+						{ urls: "stun:stun.l.google.com:19302" },
+						{ urls: "stun:stun1.l.google.com:19302" },
+						{ urls: "stun:stun2.l.google.com:19302" },
+					]
+				);
 				await this.webRTCManager.initialize();
 				await this.webRTCManager.setupLocalStream();
 
@@ -99,10 +117,9 @@ export class GameScene extends Phaser.Scene {
 					username: this.username,
 				});
 			} else {
-				room = await client.joinOrCreate(
-					this.roomId ?? "game",
-					{ username: this.username }
-				);
+				room = await client.joinOrCreate(this.roomId ?? "game", {
+					username: this.username,
+				});
 			}
 
 			this.currentRoom = room;
@@ -111,9 +128,9 @@ export class GameScene extends Phaser.Scene {
 
 			// Initialize WebRTCManager
 			this.webRTCManager = new WebRTCManager(room.sessionId, [
-				{ urls: 'stun:stun.l.google.com:19302' },
-				{ urls: 'stun:stun1.l.google.com:19302' },
-				{ urls: 'stun:stun2.l.google.com:19302' },
+				{ urls: "stun:stun.l.google.com:19302" },
+				{ urls: "stun:stun1.l.google.com:19302" },
+				{ urls: "stun:stun2.l.google.com:19302" },
 			]);
 			await this.webRTCManager.initialize();
 			await this.webRTCManager.setupLocalStream();
@@ -158,15 +175,9 @@ export class GameScene extends Phaser.Scene {
 			// Listen for position updates
 			player.onChange(() => {
 				if (otherPlayer) {
-					otherPlayer.setPosition(
-						player.x,
-						player.y
-					);
+					otherPlayer.setPosition(player.x, player.y);
 					if (player.animation) {
-						otherPlayer.play(
-							player.animation,
-							true
-						);
+						otherPlayer.play(player.animation, true);
 					}
 				}
 			});
@@ -178,16 +189,13 @@ export class GameScene extends Phaser.Scene {
 		});
 
 		// When a player leaves
-		room.state.players.onRemove(
-			(player: any, sessionId: string) => {
-				const otherPlayer =
-					this.otherPlayers.get(sessionId);
-				if (otherPlayer) {
-					otherPlayer.destroy();
-					this.otherPlayers.delete(sessionId);
-				}
+		room.state.players.onRemove((player: any, sessionId: string) => {
+			const otherPlayer = this.otherPlayers.get(sessionId);
+			if (otherPlayer) {
+				otherPlayer.destroy();
+				this.otherPlayers.delete(sessionId);
 			}
-		);
+		});
 
 		// Send local player position updates
 		this.time.addEvent({
@@ -195,8 +203,7 @@ export class GameScene extends Phaser.Scene {
 			callback: () => {
 				if (this.player && room) {
 					const currentAnimation =
-						this.player.anims.currentAnim
-							?.key ||
+						this.player.anims.currentAnim?.key ||
 						"player_idle_down";
 					room.send("updatePlayer", {
 						x: this.player.x,
@@ -210,16 +217,11 @@ export class GameScene extends Phaser.Scene {
 
 		// Listen for player movement updates from server
 		room.onMessage("playerMoved", (message) => {
-			const otherPlayer = this.otherPlayers.get(
-				message.sessionId
-			);
+			const otherPlayer = this.otherPlayers.get(message.sessionId);
 			if (otherPlayer) {
 				otherPlayer.setPosition(message.x, message.y);
 				if (message.animation) {
-					otherPlayer.play(
-						message.animation,
-						true
-					);
+					otherPlayer.play(message.animation, true);
 				}
 			}
 		});
@@ -239,7 +241,7 @@ export class GameScene extends Phaser.Scene {
 			}
 		});
 
-		 // Listen for removeVideo messages
+		// Listen for removeVideo messages
 		room.onMessage("removeVideo", (message) => {
 			const { sessionId } = message;
 			console.log(`Removing video for session ID: ${sessionId}`);
@@ -289,10 +291,7 @@ export class GameScene extends Phaser.Scene {
 			"Modern_Office_Black_Shadow",
 			"modern-office"
 		);
-		const genericTileset = this.map.addTilesetImage(
-			"Generic",
-			"generic"
-		);
+		const genericTileset = this.map.addTilesetImage("Generic", "generic");
 		const chairTileset = this.map.addTilesetImage("chair", "chair");
 		const wallsTileset = this.map.addTilesetImage(
 			"Room_Builder_Walls",
@@ -315,11 +314,9 @@ export class GameScene extends Phaser.Scene {
 		const layerNames = this.map.layers.map((layer) => layer.name);
 		console.log(layerNames);
 
-		const ground = [
-			wallsTileset,
-			officeTileset,
-			floorsTileset,
-		].filter((ts) => ts !== null);
+		const ground = [wallsTileset, officeTileset, floorsTileset].filter(
+			(ts) => ts !== null
+		);
 		const obj = [
 			basementTileset,
 			modernOfficeTileset,
@@ -330,7 +327,7 @@ export class GameScene extends Phaser.Scene {
 		const groundLayer1 = this.map.createLayer("Floor", ground);
 		const groundLayer2 = this.map.createLayer("Wall1", ground);
 		const groundLayer3 = this.map.createLayer("Wall2", ground);
-		
+
 		const chairlayer = this.map.createLayer("Chair", obj);
 		const computerlayer = this.map.createLayer("Comp", obj);
 
@@ -340,9 +337,8 @@ export class GameScene extends Phaser.Scene {
 			groundLayer2.setCollisionByProperty({ collides: true });
 		if (groundLayer3)
 			groundLayer3.setCollisionByProperty({ collides: true });
-		if (chairlayer)
-			chairlayer.setCollisionByProperty({ collides: true });
-		if(computerlayer)
+		if (chairlayer) chairlayer.setCollisionByProperty({ collides: true });
+		if (computerlayer)
 			computerlayer.setCollisionByProperty({ collides: true });
 
 		// Debug collision graphics
@@ -350,52 +346,22 @@ export class GameScene extends Phaser.Scene {
 		if (groundLayer1) {
 			groundLayer1.renderDebug(debugGraphics, {
 				tileColor: null,
-				collidingTileColor: new Phaser.Display.Color(
-					243,
-					234,
-					48,
-					255
-				),
-				faceColor: new Phaser.Display.Color(
-					40,
-					39,
-					37,
-					255
-				),
+				collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
+				faceColor: new Phaser.Display.Color(40, 39, 37, 255),
 			});
 		}
 		if (groundLayer2) {
 			groundLayer2.renderDebug(debugGraphics, {
 				tileColor: null,
-				collidingTileColor: new Phaser.Display.Color(
-					243,
-					234,
-					48,
-					255
-				),
-				faceColor: new Phaser.Display.Color(
-					40,
-					39,
-					37,
-					255
-				),
+				collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
+				faceColor: new Phaser.Display.Color(40, 39, 37, 255),
 			});
 		}
 		if (groundLayer3) {
 			groundLayer3.renderDebug(debugGraphics, {
 				tileColor: null,
-				collidingTileColor: new Phaser.Display.Color(
-					243,
-					234,
-					48,
-					255
-				),
-				faceColor: new Phaser.Display.Color(
-					40,
-					39,
-					37,
-					255
-				),
+				collidingTileColor: new Phaser.Display.Color(243, 234, 48, 255),
+				faceColor: new Phaser.Display.Color(40, 39, 37, 255),
 			});
 		}
 
@@ -405,16 +371,13 @@ export class GameScene extends Phaser.Scene {
 		// Set up camera
 		this.cameras.main.zoom = 1.5;
 		this.cameras.main.startFollow(this.player);
-		
+
 		// Add colliders
-		if (groundLayer1)
-			this.physics.add.collider(this.player, groundLayer1);
-		if (groundLayer2)
-			this.physics.add.collider(this.player, groundLayer2);
-		if (groundLayer3)
-			this.physics.add.collider(this.player, groundLayer3);
+		if (groundLayer1) this.physics.add.collider(this.player, groundLayer1);
+		if (groundLayer2) this.physics.add.collider(this.player, groundLayer2);
+		if (groundLayer3) this.physics.add.collider(this.player, groundLayer3);
 	}
-	
+
 	shutdown() {
 		if (this.webRTCManager) {
 			this.webRTCManager.shutdown();
@@ -425,7 +388,7 @@ export class GameScene extends Phaser.Scene {
 			this.currentRoom.leave();
 		}
 	}
-	
+
 	update(_t: number, _dt: number) {
 		if (this.player) {
 			this.player.update(this.cursors);

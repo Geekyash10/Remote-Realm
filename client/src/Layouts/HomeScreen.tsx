@@ -3,6 +3,7 @@ import { Client, Room } from "colyseus.js";
 import { PrivateRoomDialog } from "../components/PrivateRoomDialog";
 import { PrivateRoomsList } from "../components/PrivateRoomsList";
 import { Game } from "../Game/Game";
+
 import {
 	Building2,
 	Users,
@@ -11,6 +12,7 @@ import {
 	Lock,
 	PlusCircle,
 	Home,
+	Edit3,
 } from "lucide-react";
 
 import ChatBox from "../components/ChatBox";
@@ -47,6 +49,12 @@ function HomeScreen() {
 	const [privateRooms, setPrivateRooms] = useState<RoomInfo[]>([]);
 	const [showJoinDialog, setShowJoinDialog] = useState(false);
 	const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
+	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
+	const [whiteboardInfo, setWhiteboardInfo] = useState<{
+		whiteboardId: string;
+		isPrivate: boolean;
+		baseUrl: string;
+	} | null>(null);
 
 	// Client-side React component fix
 	useEffect(() => {
@@ -101,6 +109,14 @@ function HomeScreen() {
 			console.log("Chat message received:", message);
 			// Handle chat messages here
 		});
+
+		currentRoom.onMessage("whiteboard-info", (message) => {
+			console.log("Received whiteboard info:", message);
+			setWhiteboardInfo(message);
+		});
+
+		// Request whiteboard info from the server
+		currentRoom.send("whiteboard-access");
 
 		return () => {
 			console.log("Cleaning up room event listeners");
@@ -270,6 +286,10 @@ function HomeScreen() {
 			setJoinState("initial");
 			setUsername("");
 		}
+	};
+
+	const toggleWhiteboard = () => {
+		setShowWhiteboard(!showWhiteboard);
 	};
 
 	return (
