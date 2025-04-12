@@ -1,0 +1,39 @@
+{
+  "name": "whitebophir",
+  "description": "Online collaborative whiteboard",
+  "version": "1.22.0",
+  "keywords": [
+    "collaborative",
+    "whiteboard"
+  ],
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "accept-language-parser": "^1.5.0",
+    "async-mutex": "^0.5.0",
+    "handlebars": "^4.7.7",
+    "jsonwebtoken": "^9.0.0",
+    "polyfill-library": "^4.8.0",
+    "serve-static": "^2.2.0",
+    "socket.io": "^4",
+    "statsd-client": "^0.4.7"
+  },
+  "scripts": {
+    "start": "cross-env PORT=5001 node  ./server/server.js",
+
+
+    "test": "nightwatch tests && nightwatch tests --env jwt",
+    "prettier": "prettier . --write",
+    "prettier-check": "prettier . --check"
+  },
+  "main": "./server/server.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/lovasoa/whitebophir.git"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "geckodriver": "^4.2.1",
+    "nightwatch": "^3.2.1",
+    "prettier": "^3.1.0"
+  }
+}

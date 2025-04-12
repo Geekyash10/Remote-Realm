@@ -376,6 +376,7 @@ export class GameScene extends Phaser.Scene {
 		if (groundLayer1) this.physics.add.collider(this.player, groundLayer1);
 		if (groundLayer2) this.physics.add.collider(this.player, groundLayer2);
 		if (groundLayer3) this.physics.add.collider(this.player, groundLayer3);
+		if (chairlayer) this.physics.add.collider(this.player, chairlayer);
 	}
 
 	shutdown() {
