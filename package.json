@@ -1,0 +1,24 @@
+{
+	"name": "remote-realm",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"start-all": "concurrently -n CLIENT,SERVER,WHITEBOARD -c cyan,green,magenta \"npm --prefix client run dev\" \"npm --prefix server run dev\" \"npm --prefix whiteboard start\"",
+		"install-all": "concurrently -n ROOT,CLIENT,SERVER,WHITEBOARD -c yellow,cyan,green,magenta \"npm install\" \"npm --prefix client install\" \"npm --prefix server install\" \"npm --prefix whiteboard install\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Geekyash10/Remote-Realm.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/Geekyash10/Remote-Realm/issues"
+	},
+	"homepage": "https://github.com/Geekyash10/Remote-Realm#readme",
+	"description": "",
+	"devDependencies": {
+		"concurrently": "^9.1.2"
+	}
+}
