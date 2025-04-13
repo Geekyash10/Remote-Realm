@@ -70,7 +70,7 @@ const WhiteboardComponent: React.FC<WhiteboardProps> = ({
 						/>
 						<button
 							onClick={toggleVisibility}
-							className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+							className="absolute top-2 right-4 bg-red-600 text-white rounded-lg p-2  hover:bg-red-700 transition-colors"
 						>
 							Close
 						</button>

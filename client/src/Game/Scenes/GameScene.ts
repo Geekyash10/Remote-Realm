@@ -28,8 +28,7 @@ export class GameScene extends Phaser.Scene {
 	private roomId?: string;
 	private username?: string;
 	private isPrivate?: boolean;
-	private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> =
-		new Map();
+	private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 	private currentRoom?: Colyseus.Room;
 	private listenersInitialized: boolean = false;
 	private webRTCManager!: WebRTCManager;
@@ -86,9 +85,7 @@ export class GameScene extends Phaser.Scene {
 
 	async connectToRoom() {
 		try {
-			const client = new Colyseus.Client(
-				"ws://localhost:3000"
-			);
+			const client = new Colyseus.Client("ws://localhost:3000");
 			this.client = client;
 
 			console.log(
@@ -132,12 +129,9 @@ export class GameScene extends Phaser.Scene {
 					username: this.username,
 				});
 			} else {
-				room = await client.joinOrCreate(
-					this.roomId ?? "game",
-					{
-						username: this.username,
-					}
-				);
+				room = await client.joinOrCreate(this.roomId ?? "game", {
+					username: this.username,
+				});
 			}
 
 			this.currentRoom = room;
@@ -193,38 +187,27 @@ export class GameScene extends Phaser.Scene {
 			// Listen for position updates
 			player.onChange(() => {
 				if (otherPlayer) {
-					otherPlayer.setPosition(
-						player.x,
-						player.y
-					);
+					otherPlayer.setPosition(player.x, player.y);
 					if (player.animation) {
-						otherPlayer.play(
-							player.animation,
-							true
-						);
+						otherPlayer.play(player.animation, true);
 					}
 				}
 			});
 
 			// Delay peer connection attempt to allow the player to fully join
 			setTimeout(() => {
-				this.webRTCManager.initiatePeerConnection(
-					sessionId
-				);
+				this.webRTCManager.initiatePeerConnection(sessionId);
 			}, 2000);
 		});
 
 		// When a player leaves
-		room.state.players.onRemove(
-			(player: any, sessionId: string) => {
-				const otherPlayer =
-					this.otherPlayers.get(sessionId);
-				if (otherPlayer) {
-					otherPlayer.destroy();
-					this.otherPlayers.delete(sessionId);
-				}
+		room.state.players.onRemove((player: any, sessionId: string) => {
+			const otherPlayer = this.otherPlayers.get(sessionId);
+			if (otherPlayer) {
+				otherPlayer.destroy();
+				this.otherPlayers.delete(sessionId);
 			}
-		);
+		});
 
 		// Send local player position updates
 		this.time.addEvent({
@@ -232,8 +215,7 @@ export class GameScene extends Phaser.Scene {
 			callback: () => {
 				if (this.player && room) {
 					const currentAnimation =
-						this.player.anims.currentAnim
-							?.key ||
+						this.player.anims.currentAnim?.key ||
 						"player_idle_down";
 					room.send("updatePlayer", {
 						x: this.player.x,
@@ -247,16 +229,11 @@ export class GameScene extends Phaser.Scene {
 
 		// Listen for player movement updates from server
 		room.onMessage("playerMoved", (message) => {
-			const otherPlayer = this.otherPlayers.get(
-				message.sessionId
-			);
+			const otherPlayer = this.otherPlayers.get(message.sessionId);
 			if (otherPlayer) {
 				otherPlayer.setPosition(message.x, message.y);
 				if (message.animation) {
-					otherPlayer.play(
-						message.animation,
-						true
-					);
+					otherPlayer.play(message.animation, true);
 				}
 			}
 		});
@@ -270,26 +247,18 @@ export class GameScene extends Phaser.Scene {
 		// Listen for stopVideo messages
 		room.onMessage("stopVideo", (message) => {
 			const { sessionId } = message;
-			console.log(
-				`Stopping video for session ID: ${sessionId}`
-			);
+			console.log(`Stopping video for session ID: ${sessionId}`);
 			if (this.webRTCManager) {
-				this.webRTCManager.removeVideoElement(
-					sessionId
-				);
+				this.webRTCManager.removeVideoElement(sessionId);
 			}
 		});
 
 		// Listen for removeVideo messages
 		room.onMessage("removeVideo", (message) => {
 			const { sessionId } = message;
-			console.log(
-				`Removing video for session ID: ${sessionId}`
-			);
+			console.log(`Removing video for session ID: ${sessionId}`);
 			if (this.webRTCManager) {
-				this.webRTCManager.removeVideoElement(
-					sessionId
-				);
+				this.webRTCManager.removeVideoElement(sessionId);
 			}
 		});
 
@@ -334,10 +303,7 @@ export class GameScene extends Phaser.Scene {
 			"Modern_Office_Black_Shadow",
 			"modern-office"
 		);
-		const genericTileset = this.map.addTilesetImage(
-			"Generic",
-			"generic"
-		);
+		const genericTileset = this.map.addTilesetImage("Generic", "generic");
 		const chairTileset = this.map.addTilesetImage("chair", "chair");
 		const wallsTileset = this.map.addTilesetImage(
 			"Room_Builder_Walls",
@@ -360,11 +326,9 @@ export class GameScene extends Phaser.Scene {
 		const layerNames = this.map.layers.map((layer) => layer.name);
 		console.log(layerNames);
 
-		const ground = [
-			wallsTileset,
-			officeTileset,
-			floorsTileset,
-		].filter((ts) => ts !== null);
+		const ground = [wallsTileset, officeTileset, floorsTileset].filter(
+			(ts) => ts !== null
+		);
 		const obj = [
 			basementTileset,
 			modernOfficeTileset,
@@ -386,70 +350,12 @@ export class GameScene extends Phaser.Scene {
 			groundLayer2.setCollisionByProperty({ collides: true });
 		if (groundLayer3)
 			groundLayer3.setCollisionByProperty({ collides: true });
-		if (chairlayer)
-			chairlayer.setCollisionByProperty({ collides: true });
-		if (tablelayer)
-			tablelayer.setCollisionByProperty({ collides: true });
+		if (chairlayer) chairlayer.setCollisionByProperty({ collides: true });
+		if (tablelayer) tablelayer.setCollisionByProperty({ collides: true });
 		if (computerlayer)
 			computerlayer.setCollisionByProperty({
 				collides: true,
 			});
-
-		// Debug collision graphics
-		// const debugGraphics = this.add.graphics().setAlpha(0.7);
-		// if (groundLayer1) {
-		// 	groundLayer1.renderDebug(debugGraphics, {
-		// 		tileColor: null,
-		// 		collidingTileColor: new Phaser.Display.Color(
-		// 			243,
-		// 			234,
-		// 			48,
-		// 			255
-		// 		),
-		// 		faceColor: new Phaser.Display.Color(
-		// 			40,
-		// 			39,
-		// 			37,
-		// 			255
-		// 		),
-		// 	});
-		// }
-		// if (groundLayer2) {
-		// 	groundLayer2.renderDebug(debugGraphics, {
-		// 		tileColor: null,
-		// 		collidingTileColor: new Phaser.Display.Color(
-		// 			243,
-		// 			234,
-		// 			48,
-		// 			255
-		// 		),
-		// 		faceColor: new Phaser.Display.Color(
-		// 			40,
-		// 			39,
-		// 			37,
-		// 			255
-		// 		),
-		// 	});
-		// }
-		// if (groundLayer3) {
-		// 	groundLayer3.renderDebug(debugGraphics, {
-		// 		tileColor: null,
-		// 		collidingTileColor: new Phaser.Display.Color(
-		// 			243,
-		// 			234,
-		// 			48,
-		// 			255
-		// 		),
-		// 		faceColor: new Phaser.Display.Color(
-		// 			40,
-		// 			39,
-		// 			37,
-		// 			255
-		// 		),
-		// 	});
-		// }
-
-		// Create player sprite
 		this.player = this.add.player(705, 500, "player");
 
 		// Set up camera
@@ -457,14 +363,10 @@ export class GameScene extends Phaser.Scene {
 		this.cameras.main.startFollow(this.player);
 
 		// Add colliders
-		if (groundLayer1)
-			this.physics.add.collider(this.player, groundLayer1);
-		if (groundLayer2)
-			this.physics.add.collider(this.player, groundLayer2);
-		if (groundLayer3)
-			this.physics.add.collider(this.player, groundLayer3);
-		if (tablelayer)
-			this.physics.add.collider(this.player, tablelayer);
+		if (groundLayer1) this.physics.add.collider(this.player, groundLayer1);
+		if (groundLayer2) this.physics.add.collider(this.player, groundLayer2);
+		if (groundLayer3) this.physics.add.collider(this.player, groundLayer3);
+		if (tablelayer) this.physics.add.collider(this.player, tablelayer);
 	}
 
 	shutdown() {

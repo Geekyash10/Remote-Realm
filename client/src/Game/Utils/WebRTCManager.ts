@@ -503,12 +503,16 @@ export class WebRTCManager {
 			container.classList.add("many-participants");
 		}
 
-		// Hide video elements if participants > 3 and not in grid view
-		Object.values(this.videoElements).forEach((videoElement) => {
+		// Show only the first two video elements unless in grid view
+		const videoElements = Object.values(this.videoElements);
+		videoElements.forEach((videoElement, index) => {
 			const wrapper = videoElement.parentElement;
 			if (wrapper) {
-				wrapper.style.display =
-					participantCount > 3 && !this.isGridView ? "none" : "block";
+				if (this.isGridView || index < 2) {
+					wrapper.style.display = "block"; // Show video
+				} else {
+					wrapper.style.display = "none"; // Hide video
+				}
 			}
 		});
 	}
@@ -519,7 +523,18 @@ export class WebRTCManager {
 			container = document.createElement("div");
 			container.id = "video-container";
 			container.className = "video-compact one-participant";
-			document.body.appendChild(container);
+
+			const gameContainer = document.getElementById("game-container");
+			if (gameContainer) {
+				gameContainer.appendChild(container);
+			} else {
+				console.warn(
+					"Game container not found. Appending to body as fallback."
+				);
+				document.body.appendChild(container);
+			}
+
+			// Add visible placeholder until videos are added
 
 			// Add grid view toggle button
 			let toggleContainer = document.querySelector(
@@ -542,16 +557,20 @@ export class WebRTCManager {
 				style.textContent = `
 					.video-compact {
 						position: fixed;
-						top: 10px;
+						top: 164px;
 						right: 10px;
 						display: flex;
 						flex-direction: column;
 						gap: 10px;
 						z-index: 1000;
-						max-height: 100vh;
+						max-height: 80vh;
 						overflow-y: auto;
-					}
+						border-radius: 8px;
+						min-width: 260px;
+						min-height: 150px;
 					
+					}
+	
 					.video-grid-expanded {
 						position: fixed;
 						top: 0;
@@ -565,52 +584,35 @@ export class WebRTCManager {
 						z-index: 1000;
 						overflow: auto;
 					}
-					
-					/* Grid layouts based on participant count */
-					.one-participant .video-wrapper {
-						width: 240px;
-						height: 180px;
-					}
-					
-					.two-participants .video-wrapper {
-						width: 220px;
-						height: 165px;
-					}
-					
+	
+					.one-participant .video-wrapper { width: 240px; height: 180px; }
+					.two-participants .video-wrapper { width: 220px; height: 165px; }
 					.three-participants .video-wrapper,
-					.four-participants .video-wrapper {
-						width: 200px;
-						height: 150px;
-					}
-					
-					.many-participants .video-wrapper {
-						width: 180px;
-						height: 135px;
-					}
-					
-					/* Grid view layout */
+					.four-participants .video-wrapper { width: 200px; height: 150px; }
+					.many-participants .video-wrapper { width: 180px; height: 135px; }
+	
 					.video-grid-expanded.one-participant,
 					.video-grid-expanded.two-participants {
 						grid-template-columns: 1fr;
 						place-items: center;
 					}
-					
+	
 					.video-grid-expanded.three-participants,
 					.video-grid-expanded.four-participants {
 						grid-template-columns: repeat(2, 1fr);
 					}
-					
+	
 					.video-grid-expanded.many-participants {
 						grid-template-columns: repeat(3, 1fr);
 					}
-					
+	
 					.video-grid-expanded .video-wrapper {
 						width: 100%;
 						height: 100%;
 						max-width: 640px;
 						max-height: 480px;
 					}
-					
+	
 					.video-wrapper {
 						position: relative;
 						border-radius: 8px;
@@ -623,7 +625,7 @@ export class WebRTCManager {
 						box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 						overflow: hidden;
 					}
-					
+	
 					.video-element {
 						width: 100%;
 						height: 100%;
@@ -631,32 +633,32 @@ export class WebRTCManager {
 						border-radius: 4px;
 						background-color: #2d3748;
 					}
-					
+	
 					.local-video {
 						border: 2px solid #22c55e;
 					}
-					
+	
 					.remote-video {
 						border: 2px solid #3b82f6;
 					}
-					
+	
 					.controls-container {
-    position: absolute;
-    bottom: 8px;
-    display: flex;
-    gap: 8px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    border-radius: 20px;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-    z-index: 20; // Higher z-index to ensure it appears above the video-off indicator
-}
-
+						position: absolute;
+						bottom: 8px;
+						display: flex;
+						gap: 8px;
+						background: rgba(0, 0, 0, 0.5);
+						padding: 5px;
+						border-radius: 20px;
+						opacity: 0.7;
+						transition: opacity 0.3s;
+						z-index: 20;
+					}
+	
 					.video-wrapper:hover .controls-container {
 						opacity: 1;
 					}
-					
+	
 					.controls-container button {
 						color: white;
 						border: none;
@@ -669,19 +671,19 @@ export class WebRTCManager {
 						justify-content: center;
 						background: #4b5563;
 					}
-					
+	
 					.video-control-btn {
 						background: #7c3aed !important;
 					}
-					
+	
 					.audio-control-btn {
 						background: #2563eb !important;
 					}
-					
+	
 					.controls-container button:hover {
 						transform: scale(1.05);
 					}
-					
+	
 					.audio-off-icon {
 						position: absolute;
 						top: 8px;
@@ -696,15 +698,14 @@ export class WebRTCManager {
 						align-items: center;
 						justify-content: center;
 					}
-					
+	
 					.view-toggle-container {
 						position: fixed;
 						bottom: 20px;
-						left: 20px; /* Always on the left side */
-						right: auto;
+						right: 30px;
 						z-index: 1001;
 					}
-					
+	
 					.view-toggle-btn {
 						background: #3b82f6;
 						color: white;
@@ -716,13 +717,12 @@ export class WebRTCManager {
 						display: flex;
 						align-items: center;
 						box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-						
 					}
-					
+	
 					.view-toggle-btn:hover {
 						background: #2563eb;
 					}
-					
+	
 					.avatar-placeholder {
 						font-size: 48px;
 						color: #9ca3af;
@@ -731,6 +731,7 @@ export class WebRTCManager {
 				document.head.appendChild(style);
 			}
 		}
+
 		return container;
 	}
 

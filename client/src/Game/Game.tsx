@@ -90,8 +90,8 @@ export const Game: React.FC<GameProps> = ({
 			<div
 				id="game-container"
 				style={{
-					width: "800px",
-					height: "600px",
+					width: "100%", // Set width to 100%
+					height: "600px", // Keep the height fixed or adjust as needed
 					margin: "0 auto",
 				}}
 			/>
