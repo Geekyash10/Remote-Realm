@@ -139,6 +139,10 @@ function HomeScreen() {
 			video.srcObject = null;
 			video.remove();
 		});
+		const joystick = document.querySelector("#external-joystick-container");
+		if (joystick) {
+			joystick.remove();
+		}
 
 		const divElements = document.querySelectorAll("div");
 		divElements.forEach((div) => {
@@ -334,6 +338,14 @@ function HomeScreen() {
 					videoStyles.remove();
 				}
 
+				// remove virtual joystick
+				const joystick = document.querySelector(
+					"#external-joystick-container"
+				);
+				if (joystick) {
+					joystick.remove();
+				}
+
 				// Reset state
 				setCurrentRoom(null);
 				setJoinState("initial");
@@ -380,7 +392,7 @@ function HomeScreen() {
 				</div>
 			)}
 
-			<div className="container mx-auto px-5 py-4">
+			<div className="container mx-auto px-5 py-12">
 				{/* Initial landing page */}
 				{joinState === "initial" && (
 					<div className="max-w-3xl mx-auto text-center">

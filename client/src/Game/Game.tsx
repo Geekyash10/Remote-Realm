@@ -36,7 +36,7 @@ export const Game: React.FC<GameProps> = ({
 				default: "arcade",
 				arcade: {
 					gravity: { y: 0, x: 0 },
-					debug: true,
+					debug: false,
 				},
 			},
 			scale: {
@@ -93,6 +93,7 @@ export const Game: React.FC<GameProps> = ({
 					width: "100%", // Set width to 100%
 					height: "600px", // Keep the height fixed or adjust as needed
 					margin: "0 auto",
+					position: "relative",
 				}}
 			/>
 			<WhiteboardComponent roomId={roomId} isPrivate={isPrivate} />

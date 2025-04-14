@@ -15,6 +15,10 @@ import player_photo from "/Assets/character/adam.png";
 import player_json from "/Assets/character/adam.json?url";
 import { createCharacterAnims } from "../Character/CharacterAnims";
 import "../Character/Char";
+import joystick_base from "../../components/assets/ui/joystick-base.png";
+import joystick_thumb from "../../components/assets/ui/joystick-thumb.png";
+
+import { JoystickPlugin } from "../../components/JoystickPlugin";
 // import Peer, { MediaConnection } from 'peerjs';
 
 // Import map JSON
@@ -34,6 +38,7 @@ export class GameScene extends Phaser.Scene {
 	private webRTCManager!: WebRTCManager;
 	private tKey!: Phaser.Input.Keyboard.Key;
 	private taskManagerOpen: boolean = false;
+	private joystick!: JoystickPlugin;
 
 	constructor() {
 		super("GameScene");
@@ -282,12 +287,26 @@ export class GameScene extends Phaser.Scene {
 		this.load.atlas("player", player_photo, player_json);
 		// add cursor command
 		this.cursors = this.input.keyboard!.createCursorKeys();
+
+		this.load.image("joystick-base", joystick_base);
+		this.load.image("joystick-thumb", joystick_thumb);
+		this.joystick = new JoystickPlugin(this, this.plugins);
 	}
 
 	async create() {
 		await this.connectToRoom();
 		createCharacterAnims(this.anims);
 		this.createMap();
+		this.joystick.createExternalJoystick();
+
+		// Position the joystick at the bottom left of the window
+		// The values represent the distance from left and bottom edges
+		this.joystick.setPosition(100, 300);
+
+		// Handle window resize to reposition joystick
+		// window.addEventListener("resize", () => {
+		// 	this.joystick.setPosition(100, this.cameras.main.height - 100);
+		// });
 	}
 
 	createMap() {
@@ -369,6 +388,12 @@ export class GameScene extends Phaser.Scene {
 		if (tablelayer) this.physics.add.collider(this.player, tablelayer);
 	}
 
+	update(_t: number, _dt: number) {
+		if (this.player) {
+			// Pass both cursors and joystick to the player's update method
+			this.player.update(this.cursors, this.joystick);
+		}
+	}
 	shutdown() {
 		if (this.webRTCManager) {
 			this.webRTCManager.shutdown();
@@ -378,11 +403,9 @@ export class GameScene extends Phaser.Scene {
 		if (this.currentRoom) {
 			this.currentRoom.leave();
 		}
-	}
 
-	update(_t: number, _dt: number) {
-		if (this.player) {
-			this.player.update(this.cursors);
+		if (this.joystick) {
+			this.joystick.shutdown();
 		}
 	}
 }
