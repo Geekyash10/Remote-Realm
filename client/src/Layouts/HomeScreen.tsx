@@ -315,6 +315,12 @@ function HomeScreen() {
 					video.remove();
 				});
 
+				const containerId = `screen-share-container`;
+				const container = document.getElementById(containerId);
+				if (container) {
+					container.remove();
+				}
+
 				// Remove video container and extra buttons
 				const divElements = document.querySelectorAll("div");
 				divElements.forEach((div) => {

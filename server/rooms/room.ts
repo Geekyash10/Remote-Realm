@@ -60,6 +60,8 @@ class RoomState extends Schema {
 export class MyRoom extends Room<RoomState> {
 	private whiteboardBaseUrl = "http://localhost:5001/api/board";
 
+	private activeScreenSharePeerId: string | null = null;
+
 	async onCreate(options: any) {
 		// Set room type
 		const isPrivate = options.isPrivate || false;
@@ -300,6 +302,49 @@ export class MyRoom extends Room<RoomState> {
 				// Broadcast task update to all clients
 				this.broadcast("task-update", Array.from(this.state.tasks));
 			}
+		});
+
+		// Add these inside the onCreate method in MyRoom class
+		this.onMessage("get-screen-share-status", (client) => {
+			// Send current screen share status to the requesting client
+			client.send("screen-share-status", {
+				activePeerId: this.activeScreenSharePeerId,
+			});
+		});
+
+		// Update existing screen share handlers to track status
+		this.onMessage("screen-share-started", (client, message) => {
+			const { peerId } = message;
+
+			// Track who is currently sharing
+			this.activeScreenSharePeerId = peerId;
+
+			// Broadcast to all clients except the sender
+			this.broadcast(
+				"screen-share-started",
+				{
+					peerId: client.sessionId,
+				},
+				{ except: client }
+			);
+		});
+
+		this.onMessage("screen-share-stopped", (client, message) => {
+			const { peerId } = message;
+
+			// Clear tracking if this is the active sharer
+			if (this.activeScreenSharePeerId === peerId) {
+				this.activeScreenSharePeerId = null;
+			}
+
+			// Broadcast to all clients except the sender
+			this.broadcast(
+				"screen-share-stopped",
+				{
+					peerId: client.sessionId,
+				},
+				{ except: client }
+			);
 		});
 
 		// Handle whiteboard updates

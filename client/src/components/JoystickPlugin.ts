@@ -64,7 +64,7 @@ export class JoystickPlugin extends Phaser.Plugins.ScenePlugin {
 		container.id = "external-joystick-container";
 		container.style.position = "fixed";
 		container.style.bottom = "100px";
-		container.style.left = "5px";
+		container.style.right = "5px";
 		container.style.width = "100px";
 		container.style.height = "100px";
 		container.style.zIndex = "1000";

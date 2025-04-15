@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, Send } from "lucide-react";
+import { MessageCircle, X, Send, Smile } from "lucide-react";
+import EmojiPicker from "emoji-picker-react";
 
 interface Message {
 	text: string;
 	sender?: string;
 	timestamp?: string;
 	type?: "system" | "chat";
-	name?: string; // Add the name property
+	name?: string;
 }
 
 interface ChatBoxProps {
@@ -22,7 +23,9 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const [message, setMessage] = useState<string>("");
 	const [messages, setMessages] = useState<Message[]>([]);
+	const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
+	const emojiPickerRef = useRef<HTMLDivElement | null>(null);
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,6 +66,23 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 		scrollToBottom();
 	}, [messages]);
 
+	// Close emoji picker when clicking outside
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (
+				emojiPickerRef.current &&
+				!emojiPickerRef.current.contains(event.target as Node)
+			) {
+				setShowEmojiPicker(false);
+			}
+		}
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 	const sendMessage = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (message.trim() && room) {
@@ -74,6 +94,15 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 			});
 			setMessage("");
 		}
+	};
+
+	const onEmojiClick = (emojiObject: any) => {
+		setMessage((prev) => prev + emojiObject.emoji);
+		setShowEmojiPicker(false);
+	};
+
+	const toggleEmojiPicker = () => {
+		setShowEmojiPicker((prev) => !prev);
 	};
 
 	return (
@@ -143,6 +172,26 @@ const ChatBox: React.FC<ChatBoxProps> = ({ room, username }) => {
 
 					<form onSubmit={sendMessage} className="p-4 border-t">
 						<div className="flex space-x-2">
+							<div className="relative">
+								<button
+									type="button"
+									onClick={toggleEmojiPicker}
+									className="p-2 text-gray-500 hover:text-blue-600 focus:outline-none"
+								>
+									<Smile className="w-5 h-5" />
+								</button>
+
+								{showEmojiPicker && (
+									<div
+										ref={emojiPickerRef}
+										className="absolute bottom-12 left-0 z-10"
+									>
+										<EmojiPicker
+											onEmojiClick={onEmojiClick}
+										/>
+									</div>
+								)}
+							</div>
 							<input
 								type="text"
 								value={message}

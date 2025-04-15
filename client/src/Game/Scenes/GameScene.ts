@@ -19,6 +19,7 @@ import joystick_base from "../../components/assets/ui/joystick-base.png";
 import joystick_thumb from "../../components/assets/ui/joystick-thumb.png";
 
 import { JoystickPlugin } from "../../components/JoystickPlugin";
+
 // import Peer, { MediaConnection } from 'peerjs';
 
 // Import map JSON
@@ -301,7 +302,7 @@ export class GameScene extends Phaser.Scene {
 
 		// Position the joystick at the bottom left of the window
 		// The values represent the distance from left and bottom edges
-		this.joystick.setPosition(100, 300);
+		this.joystick.setPosition(1260, 40);
 
 		// Handle window resize to reposition joystick
 		// window.addEventListener("resize", () => {
