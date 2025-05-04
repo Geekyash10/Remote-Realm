@@ -13,14 +13,13 @@
     "handlebars": "^4.7.7",
     "jsonwebtoken": "^9.0.0",
     "polyfill-library": "^4.8.0",
+    "remote-realm": "file:..",
     "serve-static": "^2.2.0",
     "socket.io": "^4",
     "statsd-client": "^0.4.7"
   },
   "scripts": {
     "start": "cross-env PORT=5001 node  ./server/server.js",
-
-
     "test": "nightwatch tests && nightwatch tests --env jwt",
     "prettier": "prettier . --write",
     "prettier-check": "prettier . --check"

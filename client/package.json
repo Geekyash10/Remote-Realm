@@ -23,6 +23,7 @@
     "react-router-dom": "^7.1.5",
     "react-spinners": "^0.15.0",
     "react-toastify": "^11.0.5",
+    "remote-realm": "file:..",
     "simple-peer": "^9.11.1",
     "webrtc-adapter": "^9.0.1"
   },
