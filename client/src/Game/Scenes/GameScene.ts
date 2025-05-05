@@ -24,6 +24,11 @@ import { JoystickPlugin } from "../../components/JoystickPlugin";
 
 // Import map JSON
 import clgMap from "/Assets/clgMap.json?url";
+/**
+ * GameScene class representing a Phaser scene for a multiplayer game.
+ * 
+ * @class
+ */
 
 export class GameScene extends Phaser.Scene {
 	private map!: Phaser.Tilemaps.Tilemap;
@@ -38,6 +43,7 @@ export class GameScene extends Phaser.Scene {
 	private listenersInitialized: boolean = false;
 	private webRTCManager!: WebRTCManager;
 	private tKey!: Phaser.Input.Keyboard.Key;
+	private shiftKey!: Phaser.Input.Keyboard.Key;
 	private taskManagerOpen: boolean = false;
 	private joystick!: JoystickPlugin;
 
@@ -74,6 +80,9 @@ export class GameScene extends Phaser.Scene {
 				this.currentRoom // Pass the room as the third parameter
 			);
 		}
+		this.shiftKey = this.input.keyboard!.addKey(
+			Phaser.Input.Keyboard.KeyCodes.SHIFT
+		);
 		this.tKey = this.input.keyboard!.addKey(
 			Phaser.Input.Keyboard.KeyCodes.T
 		);

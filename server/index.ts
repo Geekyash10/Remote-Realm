@@ -13,20 +13,25 @@ dotenv.config();
 
 const database: string | undefined = process.env.DATABASE_URL;
 if (!database) {
-	throw new Error(
-		"DATABASE_URL is not defined in the environment variables"
-	);
+	throw new Error("DATABASE_URL is not defined in the environment variables");
 }
-mongoose.connect(database, {})
+mongoose
+	.connect(database, {})
 	.then(() => console.log("Connected to MongoDB!"))
 	.catch((err) => console.error("MongoDB Connection Error:", err));
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(
+	cors({
+		origin: "*", // no wildcard!
+		credentials: true,
+	})
+);
 const server = createServer(app);
 // create colyseus game server
 const gameServer = new Server({
 	transport: new WebSocketTransport({
 		server,
+		// Removed invalid 'cors' property
 	}),
 });
 
@@ -50,4 +55,7 @@ app.get("/privateRooms", async (req, res) => {
 const PORT = 3000;
 server.listen(PORT, "0.0.0.0", () => {
 	console.log(`Server is running on ws://localhost:${PORT}`);
+	console.log(
+		`Colyseus Monitor is running on http://localhost:${PORT}/colyseus`
+	);
 });

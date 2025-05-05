@@ -53,7 +53,7 @@ export class ScreenShareManager {
 
 	setupKeyboardShortcuts() {
 		document.addEventListener("keydown", (e) => {
-			if (e.ctrlKey && e.key === "s") {
+			if (e.shiftKey && (e.key === "s" || e.key === "S")) {
 				e.preventDefault(); // Prevent browser save dialog
 				console.log("Ctrl+S pressed");
 

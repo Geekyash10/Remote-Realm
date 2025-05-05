@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import ChatBox from "../components/ChatBox";
+import InfoButton from "../components/Information";
 
 interface RoomInfo {
 	roomId: string;
@@ -405,8 +406,8 @@ function HomeScreen() {
 						<div className="mb-8 inline-block p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-lg transform transition-transform hover:scale-105">
 							<Building2 className="w-16 h-16 text-white" />
 						</div>
-						<h1 className="text-5xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-700">
-							Virtual Office Workspace
+						<h1 className="text-4xl font-bold text-gray-900 mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-700">
+							Remote Realm - Virtual Office Workspace
 						</h1>
 						<p className="text-xl text-gray-700 mb-10 max-w-2xl mx-auto">
 							Connect with colleagues in our immersive virtual
@@ -775,6 +776,10 @@ function HomeScreen() {
 								room={currentRoom ?? undefined}
 								isPrivate={currentRoom?.state?.isPrivate}
 							/>
+						</div>
+
+						<div>
+							<InfoButton />
 						</div>
 
 						{/* ChatBox below game */}

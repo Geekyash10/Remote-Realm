@@ -25,9 +25,11 @@ const WhiteboardComponent: React.FC<WhiteboardProps> = ({
 	};
 
 	// Handle keypress
+	// Handle keypress
 	useEffect(() => {
 		const handleKeyPress = (event: KeyboardEvent) => {
-			if (event.key === "w" || event.key === "W") {
+			if (event.shiftKey && (event.key === "w" || event.key === "W")) {
+				event.preventDefault(); // Prevent the browser's save dialog
 				toggleVisibility();
 			}
 		};
