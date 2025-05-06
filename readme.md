@@ -57,7 +57,7 @@ Remote Realm uses a modular, event-driven design:
 5. **Frontend**: React/TypeScript components subscribe to Colyseus state, render UI panels, and handle user input and API calls.
 
 ## Output Screenshots
-<div class="screenshot-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+<div class="screenshot-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
     <div>
         <img src="assets/map.png" alt="Virtual Room" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
         <p align="center"><em>Map</em></p>
