@@ -9,12 +9,13 @@
 2. [Features](#features)
 3. [Technology Stack](#technology-stack)
 4. [Architecture](#architecture)
-5. [Installation & Setup](#installation--setup)
-6. [Usage](#usage)
-7. [Configuration](#configuration)
-8. [Future Work](#future-work)
-9. [Contributing](#contributing)
-10. [License](#license)
+5. [Output Screenshots](#output-screenshots)
+6. [Installation & Setup](#installation--setup)
+7. [Usage](#usage)
+8. [Configuration](#configuration)
+9. [Future Work](#future-work)
+10. [Contributing](#contributing)
+11. [License](#license)
 
 ---
 
@@ -54,6 +55,50 @@ Remote Realm uses a modular, event-driven design:
 3. **Rendering**: Phaser loads Tiled JSON maps and manages avatar sprites and input.
 4. **Sync & Persistence**: MongoDB stores room metadata and tasks; Mongoose defines schemas; Express exposes REST endpoints for room lifecycle.
 5. **Frontend**: React/TypeScript components subscribe to Colyseus state, render UI panels, and handle user input and API calls.
+
+## Output Screenshots
+<div class="screenshot-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+    <div>
+        <img src="assets/map.png" alt="Virtual Room" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Map</em></p>
+    </div>    
+    <div>
+        <img src="assets/home_screen.png" alt="Home Page" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Home Screen</em></p>
+    </div>
+    <div>
+        <img src="assets/2_participants.png" alt="Task Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Inside Room</em></p>
+    </div>
+    <div>
+        <img src="assets/task_manager.png" alt="Collaborative Whiteboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Task Manager</em></p>
+    </div>
+    <div>
+        <img src="assets/whiteboard.png" alt="Task Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Whiteboard</em></p>
+    </div>
+    <div>
+        <img src="assets/share_screen.png" alt="Collaborative Whiteboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Screen Share</em></p>
+    </div>
+    <div>
+        <img src="assets/public_room_join_form.png" alt="Home Page" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Public Room Join</em></p>
+    </div>
+    <div>
+        <img src="assets/private_room_creation_form.png" alt="Virtual Room" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Private Room Creation</em></p>
+    </div>
+    <div>
+        <img src="assets/private_room_list.png" alt="Task Management" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Available Private Rooms</em></p>
+    </div>
+    <div>
+        <img src="assets/private_room_join_form.png" alt="Collaborative Whiteboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <p align="center"><em>Private Room Join</em></p>
+    </div>
+</div>
 
 ## Installation & Setup
 1. **Clone the repository**
