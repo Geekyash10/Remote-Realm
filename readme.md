@@ -59,55 +59,16 @@ Remote Realm uses a modular, event-driven design:
 ## Output Screenshots
 
 <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-  <div style="text-align: center;">
     <img src="assets/map.png" alt="Map" width="350">
-    <p><em>Map</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/home_screen.png" alt="Home Screen" width="350">
-    <p><em>Home Screen</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/2_participants.png" alt="Inside Room" width="350">
-    <p><em>Inside Room</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/task_manager.png" alt="Task Manager" width="350">
-    <p><em>Task Manager</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/whiteboard.png" alt="Whiteboard" width="350">
-    <p><em>Whiteboard</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/share_screen.png" alt="Screen Share" width="350">
-    <p><em>Screen Share</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/public_room_join_form.png" alt="Public Room Join" width="350">
-    <p><em>Public Room Join</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/private_room_creation_form.png" alt="Private Room Creation" width="350">
-    <p><em>Private Room Creation</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/private_room_list.png" alt="Available Private Rooms" width="350">
-    <p><em>Available Private Rooms</em></p>
-  </div>
-  
-  <div style="text-align: center;">
     <img src="assets/private_room_join_form.png" alt="Private Room Join" width="350">
-    <p><em>Private Room Join</em></p>
-  </div>
 </div>
 
 ## Installation & Setup
