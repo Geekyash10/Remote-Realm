@@ -32,7 +32,7 @@ interface RoomInfo {
 	players?: string[];
 }
 
-const client = new Client("ws://localhost:3000");
+const client = new Client("wss://remote-realm-server.onrender.com");
 
 type JoinState =
 	| "initial"
@@ -196,7 +196,7 @@ function HomeScreen() {
 		setIsLoading(true);
 		try {
 			const rooms = await fetch(
-				"http://localhost:3000/privateRooms"
+				"https://remote-realm-server.onrender.com/privateRooms"
 			).then((res) => res.json());
 
 			// Ensure players property is populated
