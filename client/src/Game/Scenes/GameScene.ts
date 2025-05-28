@@ -18,15 +18,7 @@ import joystick_base from "../../components/assets/ui/joystick-base.png";
 import joystick_thumb from "../../components/assets/ui/joystick-thumb.png";
 import { JoystickPlugin } from "../../components/JoystickPlugin";
 
-// import Peer, { MediaConnection } from 'peerjs';
-
-// Import map JSON
 import clgMap from "/Assets/clgMap.json?url";
-/**
- * GameScene class representing a Phaser scene for a multiplayer game.
- *
- * @class
- */
 
 export class GameScene extends Phaser.Scene {
 	private map!: Phaser.Tilemaps.Tilemap;
@@ -216,7 +208,7 @@ export class GameScene extends Phaser.Scene {
 		});
 
 		// When a player leaves
-		room.state.players.onRemove((player: any, sessionId: string) => {
+		room.state.players.onRemove((_player: any, sessionId: string) => {
 			const otherPlayer = this.otherPlayers.get(sessionId);
 			if (otherPlayer) {
 				otherPlayer.destroy();
@@ -257,6 +249,7 @@ export class GameScene extends Phaser.Scene {
 		room.onMessage("webrtc-signal", (message) => {
 			const { from, signal } = message;
 			console.log(`Received signal from ${from}`);
+			console.log(signal);
 		});
 
 		// Listen for stopVideo messages

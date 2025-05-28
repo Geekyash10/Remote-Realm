@@ -49,7 +49,6 @@ function HomeScreen() {
 	const [error, setError] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [whiteboardInfo, setWhiteboardInfo] = useState<any>(null);
-
 	// Private room creation state
 	const [roomName, setRoomName] = useState<string>("");
 	const [roomDescription, setRoomDescription] = useState<string>("");
@@ -113,6 +112,7 @@ function HomeScreen() {
 		currentRoom.onMessage("whiteboard-info", (message) => {
 			console.log("Received whiteboard info:", message);
 			setWhiteboardInfo(message);
+			console.log("Whiteboard info set:", whiteboardInfo);
 		});
 
 		// Request whiteboard info from the server
