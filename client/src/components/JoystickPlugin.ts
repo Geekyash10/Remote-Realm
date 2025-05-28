@@ -193,7 +193,7 @@ export class JoystickPlugin extends Phaser.Plugins.ScenePlugin {
 		this.dragVector.y = dy / maxRadius;
 	}
 
-	private onExternalTouchEnd(event: TouchEvent | MouseEvent) {
+	private onExternalTouchEnd() {
 		if (!this.externalJoystick) return;
 
 		// Reset joystick position

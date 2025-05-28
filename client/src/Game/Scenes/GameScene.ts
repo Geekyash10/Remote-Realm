@@ -1,7 +1,6 @@
 import Phaser from "phaser";
 import * as Colyseus from "colyseus.js";
 import { WebRTCManager } from "../Utils/WebRTCManager";
-
 // Import tile images
 import Basement from "/Assets/Basement.png";
 import ModernOffice from "/Assets/Modern_Office_Black_Shadow.png";
@@ -17,7 +16,6 @@ import { createCharacterAnims } from "../Character/CharacterAnims";
 import "../Character/Char";
 import joystick_base from "../../components/assets/ui/joystick-base.png";
 import joystick_thumb from "../../components/assets/ui/joystick-thumb.png";
-
 import { JoystickPlugin } from "../../components/JoystickPlugin";
 
 // import Peer, { MediaConnection } from 'peerjs';
@@ -34,16 +32,16 @@ export class GameScene extends Phaser.Scene {
 	private map!: Phaser.Tilemaps.Tilemap;
 	private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 	private player!: Phaser.Physics.Arcade.Sprite;
-	private client!: Colyseus.Client;
 	private roomId?: string;
 	private username?: string;
 	private isPrivate?: boolean;
 	private otherPlayers: Map<string, Phaser.Physics.Arcade.Sprite> = new Map();
 	private currentRoom?: Colyseus.Room;
+	private client?: Colyseus.Client;
 	private listenersInitialized: boolean = false;
 	private webRTCManager!: WebRTCManager;
-	private tKey!: Phaser.Input.Keyboard.Key;
 	private shiftKey!: Phaser.Input.Keyboard.Key;
+	private tKey!: Phaser.Input.Keyboard.Key;
 	private taskManagerOpen: boolean = false;
 	private joystick!: JoystickPlugin;
 
