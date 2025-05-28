@@ -15,7 +15,7 @@ const WhiteboardComponent: React.FC<WhiteboardProps> = ({
 		? `virtual-office-${roomId}`
 		: "public-whiteboard";
 
-	const wboBaseUrl = "http://localhost:5001/boards/";
+	const wboBaseUrl = "https://remote-realm.onrender.com/boards/";
 	const wboUrl = `${wboBaseUrl}${whiteboardId}?${
 		isPrivate ? "readonly=false" : ""
 	}`;
