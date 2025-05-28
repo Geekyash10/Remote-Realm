@@ -9,12 +9,13 @@
 2. [Features](#features)
 3. [Technology Stack](#technology-stack)
 4. [Architecture](#architecture)
-5. [Installation & Setup](#installation--setup)
-6. [Usage](#usage)
-7. [Configuration](#configuration)
-8. [Future Work](#future-work)
-9. [Contributing](#contributing)
-10. [License](#license)
+5. [Output Screenshots](#output-screenshots)
+6. [Installation & Setup](#installation--setup)
+7. [Usage](#usage)
+8. [Configuration](#configuration)
+9. [Future Work](#future-work)
+10. [Contributing](#contributing)
+11. [License](#license)
 
 ---
 
@@ -54,6 +55,21 @@ Remote Realm uses a modular, event-driven design:
 3. **Rendering**: Phaser loads Tiled JSON maps and manages avatar sprites and input.
 4. **Sync & Persistence**: MongoDB stores room metadata and tasks; Mongoose defines schemas; Express exposes REST endpoints for room lifecycle.
 5. **Frontend**: React/TypeScript components subscribe to Colyseus state, render UI panels, and handle user input and API calls.
+
+## Output Screenshots
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+    <img src="assets/map.png" alt="Map" width="350">
+    <img src="assets/home_screen.png" alt="Home Screen" width="350">
+    <img src="assets/2_participants.png" alt="Inside Room" width="350">
+    <img src="assets/task_manager.png" alt="Task Manager" width="350">
+    <img src="assets/whiteboard.png" alt="Whiteboard" width="350">
+    <img src="assets/share_screen.png" alt="Screen Share" width="350">
+    <img src="assets/public_room_join_form.png" alt="Public Room Join" width="350">
+    <img src="assets/private_room_creation_form.png" alt="Private Room Creation" width="350">
+    <img src="assets/private_room_list.png" alt="Available Private Rooms" width="350">
+    <img src="assets/private_room_join_form.png" alt="Private Room Join" width="350">
+</div>
 
 ## Installation & Setup
 1. **Clone the repository**
