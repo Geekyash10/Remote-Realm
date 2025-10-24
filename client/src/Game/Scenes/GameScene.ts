@@ -26,7 +26,7 @@ import { JoystickPlugin } from "../../components/JoystickPlugin";
 import clgMap from "/Assets/clgMap.json?url";
 /**
  * GameScene class representing a Phaser scene for a multiplayer game.
- * 
+ *
  * @class
  */
 
@@ -100,7 +100,9 @@ export class GameScene extends Phaser.Scene {
 
 	async connectToRoom() {
 		try {
-			const client = new Colyseus.Client("ws://localhost:3000");
+			const client = new Colyseus.Client(
+				"ws://localhost:3000" // Replace with your server URL
+			);
 			this.client = client;
 
 			console.log(

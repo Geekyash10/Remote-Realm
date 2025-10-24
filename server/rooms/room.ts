@@ -58,7 +58,7 @@ class RoomState extends Schema {
 }
 
 export class MyRoom extends Room<RoomState> {
-	private whiteboardBaseUrl = "http://localhost:5001/api/board";
+	private whiteboardBaseUrl = process.env.WHITEBOARD_URL;
 
 	private activeScreenSharePeerId: string | null = null;
 
@@ -97,7 +97,8 @@ export class MyRoom extends Room<RoomState> {
 			client.send("whiteboard-info", {
 				whiteboardId: this.state.whiteboardId,
 				isPrivate: this.state.isPrivate,
-				baseUrl: "http://localhost:5001/boards/",
+				// baseUrl: "https://remote-realm.onrender.com/boards/",
+				baseUrl: `${this.whiteboardBaseUrl}/boards/`,
 			});
 		});
 
@@ -105,7 +106,7 @@ export class MyRoom extends Room<RoomState> {
 			client.send("whiteboard-info", {
 				whiteboardId: this.state.whiteboardId,
 				isPrivate: this.state.isPrivate,
-				baseUrl: "http://localhost:5001/boards/",
+				baseUrl: `${this.whiteboardBaseUrl}/boards/`,
 			});
 		});
 
@@ -483,7 +484,7 @@ export class MyRoom extends Room<RoomState> {
 		client.send("whiteboard-info", {
 			whiteboardId: this.state.whiteboardId,
 			isPrivate: this.state.isPrivate,
-			baseUrl: "http://localhost:5001/boards/",
+			baseUrl: "https://remote-realm.onrender.com/boards/",
 		});
 	}
 
