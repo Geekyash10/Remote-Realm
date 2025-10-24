@@ -14,8 +14,7 @@
 7. [Usage](#usage)
 8. [Configuration](#configuration)
 9. [Future Work](#future-work)
-10. [Contributing](#contributing)
-11. [License](#license)
+
 
 ---
 
@@ -34,9 +33,9 @@ Remote Realm recreates the social and functional dynamics of a physical office i
   - Peer-to-peer video/audio and screen sharing with PeerJS.
   - Display of each participant’s webcam feed on-screen.
 - **Collaborative Tools**
-  - **Tasks Pane** (key `T`): full CRUD on tasks with instant notifications.
-  - **Whiteboard** (key `W`): shared drawing canvas powered by Whitebophir.
-  - **Screen Share** (key `S`): broadcast your screen to all room members.
+  - **Tasks Pane** (key `Shift + T`): full CRUD on tasks with instant notifications.
+  - **Whiteboard** (key `Shift + W`): shared drawing canvas powered by Whitebophir.
+  - **Screen Share** (key `Shift + S`): broadcast your screen to all room members.
 - **Notifications**
   - Real-time updates for task and whiteboard actions across all clients.
 
@@ -86,7 +85,7 @@ Remote Realm uses a modular, event-driven design:
 3. Environment Variables:
     Create a ```.env``` file in ```/server```
     ```javascript
-    PORT=3001
+    PORT=3000
     MONGODB_URI=your_mongo_connection_string
     JWT_SECRET=your_secret_key
     ```
@@ -103,9 +102,9 @@ Remote Realm uses a modular, event-driven design:
 1. Home Page: choose “Join Public Room”, “Create Private Room”, or “Join Private Room”.
 2. In-Room Controls:
     - Move avatar: arrow keys or joystick.
-    - Open tasks pane: press T.
-    - Open whiteboard: press W.
-    - Start screen share: press S.
+    - Open tasks pane: press Shift + T.
+    - Open whiteboard: press  Shift + W.
+    - Start screen share: press  Shift + S.
 3. Tasks Pane: create, edit, delete tasks; updates broadcast to all users.
 4. Whiteboard: draw collaboratively; strokes sync in real time.
 5. Exit: close the browser tab or press the “Leave Room” button to disconnect.
@@ -121,11 +120,3 @@ Remote Realm uses a modular, event-driven design:
 - Avatar customization and proximity-based audio.
 - Versioned history for tasks and whiteboard sessions.
 - Enhanced scalability with container orchestration.
-
-## Contributing
-1. Fork the repo.
-2. Create a feature branch (git checkout -b feature/your-feature).
-3. Commit your changes (git commit -m "Add your feature").
-4. Push to the branch (git push origin feature/your-feature).
-5. Open a Pull Request.
----

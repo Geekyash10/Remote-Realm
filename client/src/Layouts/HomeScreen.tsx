@@ -12,7 +12,6 @@ import {
 	Lock,
 	PlusCircle,
 	Home,
-	Edit3,
 	Bookmark,
 	RefreshCw,
 	CheckCircle,
@@ -32,7 +31,7 @@ interface RoomInfo {
 	players?: string[];
 }
 
-const client = new Client("ws://localhost:3000");
+const client = new Client("wss://remote-realm-server.onrender.com");
 
 type JoinState =
 	| "initial"
@@ -49,7 +48,7 @@ function HomeScreen() {
 	const [joinedPlayers, setJoinedPlayers] = useState<string[]>([]);
 	const [error, setError] = useState<string>("");
 	const [isLoading, setIsLoading] = useState<boolean>(false);
-
+	const [whiteboardInfo, setWhiteboardInfo] = useState<any>(null);
 	// Private room creation state
 	const [roomName, setRoomName] = useState<string>("");
 	const [roomDescription, setRoomDescription] = useState<string>("");
@@ -59,13 +58,6 @@ function HomeScreen() {
 	const [privateRooms, setPrivateRooms] = useState<RoomInfo[]>([]);
 	const [showJoinDialog, setShowJoinDialog] = useState(false);
 	const [selectedRoom, setSelectedRoom] = useState<RoomInfo | null>(null);
-	const [showWhiteboard, setShowWhiteboard] = useState<boolean>(false);
-	const [whiteboardInfo, setWhiteboardInfo] = useState<{
-		whiteboardId: string;
-		isPrivate: boolean;
-		baseUrl: string;
-	} | null>(null);
-
 	// Client-side React component fix
 	useEffect(() => {
 		if (!currentRoom) return;
@@ -73,14 +65,14 @@ function HomeScreen() {
 		console.log("Setting up room event listeners");
 
 		// Handle player state changes
-		currentRoom.state.players.onAdd((player: any) => {
+		currentRoom.state.players.onAdd((_player: any) => {
 			const playerNames = Array.from(
 				currentRoom.state.players.values()
 			).map((p: any) => p.name);
 			setJoinedPlayers(playerNames);
 		});
 
-		currentRoom.state.players.onRemove((player: any) => {
+		currentRoom.state.players.onRemove((_player: any) => {
 			const playerNames = Array.from(
 				currentRoom.state.players.values()
 			).map((p: any) => p.name);
@@ -120,6 +112,7 @@ function HomeScreen() {
 		currentRoom.onMessage("whiteboard-info", (message) => {
 			console.log("Received whiteboard info:", message);
 			setWhiteboardInfo(message);
+			console.log("Whiteboard info set:", whiteboardInfo);
 		});
 
 		// Request whiteboard info from the server
@@ -196,7 +189,7 @@ function HomeScreen() {
 		setIsLoading(true);
 		try {
 			const rooms = await fetch(
-				"http://localhost:3000/privateRooms"
+				"https://remote-realm-server.onrender.com/privateRooms"
 			).then((res) => res.json());
 
 			// Ensure players property is populated
@@ -363,10 +356,6 @@ function HomeScreen() {
 				setIsLoading(false); // Hide loading indicator
 			}
 		}
-	};
-
-	const toggleWhiteboard = () => {
-		setShowWhiteboard(!showWhiteboard);
 	};
 
 	const refreshPrivateRooms = () => {
