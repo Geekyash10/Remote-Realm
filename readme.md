@@ -41,7 +41,7 @@ Remote Realm recreates the social and functional dynamics of a physical office i
 
 ## Technology Stack
 - **Backend**: Node.js, Express, Colyseus, Mongoose (MongoDB)
-- **Frontend**: React, TypeScript, React Router, React Redux
+- **Frontend**: React, TypeScript, React Router
 - **Game Engine**: Phaser for rendering and input
 - **Map Editor**: Tiled for custom tilemaps
 - **Media**: PeerJS for WebRTC streaming
